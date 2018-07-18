@@ -9,8 +9,9 @@ export const ROLES = {
     ADMIN: 2,
     SUPERADMIN: 3,
 };
+
 const UserSchema = Schema({
-    email: {
+    username: {
         type: String,
         lowercase: true,
         unique: true,

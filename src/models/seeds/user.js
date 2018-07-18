@@ -8,7 +8,7 @@ async function seed(){
         for(let i =0; i< 10; i++)
         {
             let u = new User({
-                email: faker.internet.email(),
+                username: faker.internet.username(),
                 password: "Hello@123",
                 role: ROLES.CLIENT ,
             });

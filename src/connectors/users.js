@@ -8,8 +8,8 @@ export const Users = crud(User);
 
 Users.login = async (params) => {
     console.log(params);
-    const { email, password } = params;
-    const user = await User.findOne({email});
+    const { username, password } = params;
+    const user = await User.findOne({username});
     if(!user){
         throw new Error("Can't find user");
     }
@@ -29,7 +29,7 @@ Users.login = async (params) => {
 const typeDefs = `
     type User{
         id: String!
-        email: String!
+        username: String!
         password: String!
         createdAt: String!
         updatedAt: String!        
@@ -59,10 +59,10 @@ const RootQuery = {
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createUser(email: String!, password: String!):User
-    updateUser(id: String!, email: String!, password: String!): User
+    createUser(username: String!, password: String!):User
+    updateUser(id: String!, username: String!, password: String!): User
     deleteUser(id: String!): User
-    login(email: String!, password: String!): Login
+    login(username: String!, password: String!): Login
 `;
 
 // Mutation resolvers
