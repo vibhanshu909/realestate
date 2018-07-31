@@ -7,8 +7,8 @@ export default function(model){
             }).limit(limit);
         },
 
-        find: async function({id}) {
-            return await model.findById(id);
+        find: function({id}) {
+            return model.findById(id);
         },
 
         create: async function(args) {

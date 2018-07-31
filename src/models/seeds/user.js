@@ -5,20 +5,16 @@ import faker from 'faker';
 async function seed(){
     console.log("Seeding...");
     try {
-        for(let i =0; i< 10; i++)
-        {
-            let u = new User({
-                username: faker.internet.username(),
-                password: "Hello@123",
-                role: ROLES.CLIENT ,
-            });
-            u = await u.save();
-        }
-
+        let u = new User({
+            username: "admin",
+            password: "admin@123",
+            role: ROLES.SUPERADMIN,
+        });
+        u = await u.save();
     } catch (e) {
         console.log(e);
-    } finally {
     }
+    
     console.log("Finished");
 }
 seed();

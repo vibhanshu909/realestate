@@ -25,7 +25,7 @@ const UserSchema = Schema({
         type: String,
         required: true,
         enum: Object.values(ROLES),
-        default: ROLES.CLIENT
+        default: ROLES.MANAGER
     }
 },
 {

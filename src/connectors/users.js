@@ -16,8 +16,8 @@ Users.login = async (params) => {
     const isMatch = await user.comparePassword(password);
     if(isMatch){
         const { _id } = user;
-        const token = jwt.sign( {id: _id}, config.secret, {
-            expiresIn: "1y"
+        const token = jwt.sign( {id: _id, role: user.role}, config.secret, {
+            expiresIn: "1"
         });
         return { token };
     }
@@ -27,12 +27,12 @@ Users.login = async (params) => {
 };
 
 const typeDefs = `
-    type User{
+    type User {
         id: String!
         username: String!
         password: String!
         createdAt: String!
-        updatedAt: String!        
+        updatedAt: String!
     }
     type Login{
         token: String!
