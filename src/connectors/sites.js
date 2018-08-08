@@ -12,17 +12,18 @@ const typeDefs = `
         id: String!
         name: String!
         location: String!
+        cost: Int!,
         entries: [SiteEntry!]
         createdAt: String!
         updatedAt: String!
     }
     type SiteEntryOutput {
         quantity: Int!,
-        cost: Int!
+        cost: Float!
     }
     input SiteEntryInput {
         quantity: Int!,
-        cost: Int!
+        cost: Float!
     }
 
     type SiteEntry {
@@ -44,19 +45,19 @@ const typeDefs = `
 // Queries allowed in graphql
 const QuerySchema = `
     sites(limit: Int!, offset: String = "0"): [Site]
-    site(id: String!): Site
+    site(id: String!, limit: Int!): Site
 `;
 
 // Query resolvers
 const Query = {
     Site: {
-        // entries: (_, { id }, context, info) => {return Site.findById({id}).populate('entries').pluck('entries');}
+        // entries: (_, { id, limit }, context, info) => {return Site.findById({id}).populate({path: 'entries'});}
     },
 };
 
 const RootQuery = {
-    sites: async (parent, args, context, info) => await Sites.all(args),
-    site: async (parent, args, context, info) => await Sites.find(args).populate('entries'),
+    sites: async (parent, args, context, info) => Sites.all(args),
+    site: async (parent, {id, limit}, context, info) => Sites.find({id}).populate({ path: 'entries', options: {limit}}),
 };
 
 // Mutations allowed in graphql
@@ -65,7 +66,7 @@ const MutationSchema = `
     updateSite(id: String!, sitename: String!, location: String!): Site
     deleteSite(id: String!): Site
     makeSiteEntry(
-        siteId: String,
+        siteId: String!,
         mistri: SiteEntryInput,
         labour: SiteEntryInput,
         eit: SiteEntryInput,
@@ -90,7 +91,10 @@ const RootMutation = {
         console.log(site);
         const entry = await SiteEntries.create(args);
         console.log(entry);
-        site.entries.push(entry);
+        site.entries.unshift(entry);
+        const { _id, createdAt, updatedAt, __v, ...rest} = entry.toObject();
+        console.log("rest....", rest);
+        Object.values(rest).forEach(e=> site.cost += e.cost);
         site.save();
         return entry;
     },

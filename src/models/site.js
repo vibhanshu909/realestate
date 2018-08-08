@@ -16,49 +16,31 @@ const SiteSchema = Schema({
     manager: {
         type: Schema.Types.ObjectId,
     },
-    entries: [{ type: Schema.Types.ObjectId, ref: 'SiteEntries' }]
+    entries: [{ type: Schema.Types.ObjectId, ref: 'SiteEntries' }],
+    cost: {
+        type: Number,
+        min: 0,
+        default: 0,
+    }
 },
 {
     timestamps: true
 });
+
 const repeater = {
-    quantity: { type: Number, required: true, min: 0},
-    cost: { type: Number, required: true, min: 0.00}
+    quantity: { type: Number, min: 0},
+    cost: { type: Number, min: 0.00}
 }
 
 const SiteEntrySchema = Schema({
-    mistri: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
-    labour: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
-    eit: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
-    morang: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
-    githi: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
-    cement: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
-    saria: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
-    dust: {
-        quantity: { type: Number, required: true, min: 0},
-        cost: { type: Number, required: true, min: 0.00}
-    },
+    mistri: repeater,
+    labour: repeater,
+    eit: repeater,
+    morang: repeater,
+    githi: repeater,
+    cement: repeater,
+    saria: repeater,
+    dust: repeater,
     other: {
         quantity: { type: Number, required: true, min: 0},
         cost: { type: Number, required: true, min: 0.00}
@@ -67,6 +49,14 @@ const SiteEntrySchema = Schema({
 {
     timestamps: true
 });
+//
+// SiteEntrySchema.pre('save', function(next){
+//     const { site } = this.poulate('site');
+//     let cost = 0;
+//     site.entries.forEach(e => Object.values(e).forEach(f => cost += f.cost));
+//     cost += Object.values()
+//     return next();
+// });
 
 export const Site = mongoose.model("Site", SiteSchema);
 export const SiteEntry = mongoose.model("SiteEntries", SiteEntrySchema);
