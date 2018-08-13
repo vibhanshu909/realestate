@@ -28,8 +28,8 @@ const SiteSchema = Schema({
 });
 
 const repeater = {
-    quantity: { type: Number, min: 0},
-    cost: { type: Number, min: 0.00}
+    quantity: { type: Number, required: true, min: 0},
+    cost: { type: Number, required: true, min: 0.00}
 }
 
 const SiteEntrySchema = Schema({
@@ -49,6 +49,7 @@ const SiteEntrySchema = Schema({
 {
     timestamps: true
 });
+SiteEntrySchema.index({createdAt: 1})
 //
 // SiteEntrySchema.pre('save', function(next){
 //     const { site } = this.poulate('site');

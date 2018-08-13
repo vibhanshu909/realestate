@@ -16,6 +16,7 @@ const typeDefs = `
         entries: [SiteEntry!]
         createdAt: String!
         updatedAt: String!
+        count: Int!
     }
     type SiteEntryOutput {
         quantity: Int!,
@@ -45,19 +46,30 @@ const typeDefs = `
 // Queries allowed in graphql
 const QuerySchema = `
     sites(limit: Int!, offset: String = "0"): [Site]
-    site(id: String!, limit: Int!): Site
+    site(id: String!, limit: Int = 15, skip: Int = 0): Site
 `;
 
 // Query resolvers
 const Query = {
     Site: {
         // entries: (_, { id, limit }, context, info) => {return Site.findById({id}).populate({path: 'entries'});}
+        count: (_, args, context, info) => {
+            console.log("count....", context.count);
+            return context.count;
+        }
     },
+    SiteEntry: {
+    }
 };
 
 const RootQuery = {
     sites: async (parent, args, context, info) => Sites.all(args),
-    site: async (parent, {id, limit}, context, info) => Sites.find({id}).populate({ path: 'entries', options: {limit}}),
+    site: async (parent, {id, limit, skip}, context, info) => {
+        const site = await Sites.find({id});
+        console.log("length....", site.entries.length);
+        context.count = site.entries.length;
+        return Sites.find({id}).populate({ path: 'entries', options: {limit, skip, sort: "-createdAt"}});
+    },
 };
 
 // Mutations allowed in graphql

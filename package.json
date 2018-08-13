@@ -7,7 +7,8 @@
         "build": "rimraf ./build && babel -d ./build ./src",
         "start": "babel-watch src/index.js",
         "start-pro": "npm run build && node build/server.js",
-        "seed": "babel-watch ./src/models/seeds/user.js"
+        "seed": "babel-watch ./src/models/seeds/siteEntry.js",
+        "test": "babel-watch ./src/models/test.js"
     },
     "keywords": [],
     "author": "",
@@ -37,5 +38,5 @@
         "faker": "^4.1.0",
         "morgan": "^1.9.0",
         "rimraf": "^2.6.2"
-    }    
+    }
 }
