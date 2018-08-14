@@ -28,7 +28,7 @@ Users.login = async (params) => {
 
 const typeDefs = `
     type User {
-        id: String!
+        id: ID!
         username: String!
         password: String!
         createdAt: String!

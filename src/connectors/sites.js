@@ -9,7 +9,7 @@ export const SiteEntries = crud(SiteEntry);
 
 const typeDefs = `
     type Site {
-        id: String!
+        id: ID!
         name: String!
         location: String!
         cost: Int!,
@@ -28,7 +28,7 @@ const typeDefs = `
     }
 
     type SiteEntry {
-        id: String!
+        id: ID!
         mistri: SiteEntryOutput
         labour: SiteEntryOutput
         eit: SiteEntryOutput
