@@ -15,6 +15,8 @@ const SiteSchema = Schema({
     },
     manager: {
         type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
     },
     entries: [{ type: Schema.Types.ObjectId, ref: 'SiteEntries' }],
     cost: {
@@ -42,22 +44,25 @@ const SiteEntrySchema = Schema({
     saria: repeater,
     dust: repeater,
     other: {
-        quantity: { type: Number, required: true, min: 0},
+        quantity: { type: String, required: true},
         cost: { type: Number, required: true, min: 0.00}
     },
+    total: { type: Number, default: 0, min: 0.00}
 },
 {
     timestamps: true
 });
 SiteEntrySchema.index({createdAt: 1})
 //
-// SiteEntrySchema.pre('save', function(next){
-//     const { site } = this.poulate('site');
-//     let cost = 0;
-//     site.entries.forEach(e => Object.values(e).forEach(f => cost += f.cost));
-//     cost += Object.values()
-//     return next();
-// });
+SiteEntrySchema.pre('save', function(next){
+    let total = 0;
+    const { _id, createdAt, updatedAt, total: _, _v, ...rest } = this.toObject();
+    console.log(rest);
+    Object.values(rest).forEach(e => total += e.cost);
+    console.log("total..........................", total);
+    this.total = total;
+    return next();
+});
 
 export const Site = mongoose.model("Site", SiteSchema);
 export const SiteEntry = mongoose.model("SiteEntries", SiteEntrySchema);

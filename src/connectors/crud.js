@@ -1,18 +1,16 @@
 export default function(model){
     return {
 
-        all: async function({limit, offset}) {
-            return await model.find().sort({createdAt: -1}).find({
-                createdAt: { $gte: (offset === "0"? Date.parse(1, 0, 1970): Date.parse(offset)) }
-            }).limit(limit);
+        all: function({limit, skip}) {
+            return model.find().skip(skip).limit(limit).sort({createdAt: -1});
         },
 
         find: function({id}) {
             return model.findById(id);
         },
 
-        create: async function(args) {
-            return await new model(args).save();
+        create: function(args) {
+            return new model(args).save();
         },
 
         update: async function(args) {

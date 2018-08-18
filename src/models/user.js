@@ -4,10 +4,8 @@ import bcrypt from 'bcrypt';
 var Schema = mongoose.Schema;
 
 export const ROLES = {
-    CLIENT: 0,
-    MANAGER: 1,
-    ADMIN: 2,
-    SUPERADMIN: 3,
+    ADMIN: 1,
+    MANAGER: 0,
 };
 
 const UserSchema = Schema({
@@ -26,7 +24,11 @@ const UserSchema = Schema({
         required: true,
         enum: Object.values(ROLES),
         default: ROLES.MANAGER
-    }
+    },
+    sites: [{
+        type: Schema.Types.ObjectId,
+        ref: "Site"
+    }]
 },
 {
     timestamps: true

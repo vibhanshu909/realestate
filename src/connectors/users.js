@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import config from '../config/main';
 import AuthDirective from '../directives/auth_directive';
-import { isAdmin, isSuperAdmin } from '../config/permissions';
+import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
 export const Users = crud(User);
 
@@ -17,7 +17,7 @@ Users.login = async (params) => {
     if(isMatch){
         const { _id } = user;
         const token = jwt.sign( {id: _id, role: user.role}, config.secret, {
-            expiresIn: "1"
+            expiresIn: "1y"
         });
         return { token };
     }
@@ -33,6 +33,7 @@ const typeDefs = `
         password: String!
         createdAt: String!
         updatedAt: String!
+        count: Int!
     }
     type Login{
         token: String!
@@ -41,20 +42,26 @@ const typeDefs = `
 
 // Queries allowed in graphql
 const QuerySchema = `
-    users(limit: Int!, offset: String = "0"): [User]
+    users(limit: Int!, skip: Int = 0): [User]
     user(id: String!): User
 `;
 
 // Query resolvers
 const Query = {
     User: {
-
+        count: (_, args, context, info) => {
+            console.log("count....", context.count);
+            return context.count;
+        }
     },
 };
 
 const RootQuery = {
-    users: (parent, args, context, info) => {  return Users.all(args)},
-    user: (parent, args, context, info) => Users.find(args),
+    users: isAdmin.createResolver((parent, args, context, info) => {
+        context.count = User.count({});
+        return Users.all(args)
+    }),
+    user: isAdmin.createResolver((parent, args, context, info) => Users.find(args)),
 };
 
 // Mutations allowed in graphql
@@ -67,9 +74,9 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-    createUser: (parent, args, context, info) => Users.create(args),
-    updateUser: (parent, args, context, info) => Users.update(args),
-    deleteUser: isSuperAdmin.createResolver((parent, args, context, info) => Users.remove(args)),
+    createUser: isAdmin.createResolver((parent, args, context, info) => Users.create(args)),
+    updateUser: isManager.createResolver((parent, args, context, info) => Users.update(args)),
+    deleteUser: isAdmin.createResolver((parent, args, context, info) => Users.remove(args)),
     login: (parent, args, context, info) => Users.login(args),
 }
 const Mutation = {

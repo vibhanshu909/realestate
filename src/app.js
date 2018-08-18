@@ -9,6 +9,7 @@ const app = express();
 
 app.use(logger('dev'));
 
+
 var corsOptions = {
   origin: "*",
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -19,5 +20,8 @@ var corsOptions = {
 app.use(cors(corsOptions));
 
 graphqlConfig(app);
+
+app.use('/', express.static('build/',{ maxage: '1h'}));
+app.use('/*', express.static('build/',{ maxage: '1h'}));
 
 export default app;

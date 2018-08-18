@@ -3,8 +3,8 @@ import {Site, SiteEntry} from '../site';
 
 async function seed(){
     console.log("Seeding...");
-    const s = await Site.findById("5b72a1c1623fb67e03fb2763");
-    for(let i=3; i<= 100; i++){
+    const s = await Site.findById("5b767200bda3680e63bf5f5e");
+    for(let i=2; i<= 20; i++){
         let data = {
             quantity: i,
             cost: i

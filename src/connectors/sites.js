@@ -2,8 +2,9 @@ import jwt from 'jsonwebtoken';
 import {Site, SiteEntry} from '../models/site';
 import config from '../config/main';
 import AuthDirective from '../directives/auth_directive';
-import { isAdmin, isSuperAdmin } from '../config/permissions';
+import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
+import { Users } from './users';
 export const Sites = crud(Site);
 export const SiteEntries = crud(SiteEntry);
 
@@ -12,7 +13,8 @@ const typeDefs = `
         id: ID!
         name: String!
         location: String!
-        cost: Int!,
+        manager: User
+        cost: Int!
         entries: [SiteEntry!]
         createdAt: String!
         updatedAt: String!
@@ -22,8 +24,16 @@ const typeDefs = `
         quantity: Int!,
         cost: Float!
     }
+    type SiteEntryOtherOutput {
+        quantity: Int!,
+        cost: Float!
+    }
     input SiteEntryInput {
         quantity: Int!,
+        cost: Float!
+    }
+    input SiteEntryOtherInput {
+        quantity: String!,
         cost: Float!
     }
 
@@ -37,15 +47,16 @@ const typeDefs = `
         cement: SiteEntryOutput
         saria: SiteEntryOutput
         dust: SiteEntryOutput
-        other: SiteEntryOutput
+        other: SiteEntryOtherOutput
         createdAt: String!
         updatedAt: String!
+        total: Int!,
     }
 `;
 
 // Queries allowed in graphql
 const QuerySchema = `
-    sites(limit: Int!, offset: String = "0"): [Site]
+    sites(limit: Int!, skip: Int = 0): [Site]
     site(id: String!, limit: Int = 15, skip: Int = 0): Site
 `;
 
@@ -63,18 +74,21 @@ const Query = {
 };
 
 const RootQuery = {
-    sites: async (parent, args, context, info) => Sites.all(args),
-    site: async (parent, {id, limit, skip}, context, info) => {
+    sites: isAdmin.createResolver((parent, args, context, info) => {
+        context.count = Site.count({});
+        return Sites.all(args).populate('manager')
+    }),
+    site: isManager.createResolver(async (parent, {id, limit, skip}, context, info) => {
         const site = await Sites.find({id});
         console.log("length....", site.entries.length);
         context.count = site.entries.length;
-        return Sites.find({id}).populate({ path: 'entries', options: {limit, skip, sort: "-createdAt"}});
-    },
+        return Sites.find({id}).populate('manager').populate({ path: 'entries', options: {limit, skip, sort: "-createdAt"}});
+    }),
 };
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createSite(name: String!, location: String!):Site
+    createSite(name: String!, location: String!, manager: String!):Site
     updateSite(id: String!, sitename: String!, location: String!): Site
     deleteSite(id: String!): Site
     makeSiteEntry(
@@ -87,29 +101,35 @@ const MutationSchema = `
         cement: SiteEntryInput,
         saria: SiteEntryInput,
         dust: SiteEntryInput,
-        other: SiteEntryInput
+        other: SiteEntryOtherInput
     ): SiteEntry
 `;
 
 // Mutation resolvers
 const RootMutation = {
-    createSite: (parent, args, context, info) => Sites.create(args),
-    updateSite: (parent, args, context, info) => Sites.update(args),
-    deleteSite: isSuperAdmin.createResolver((parent, args, context, info) => Sites.remove(args)),
-    makeSiteEntry: async (parent, {siteId, ...args}, context, info) => {
-        console.log(siteId);
-        console.log(args);
+    createSite: isAdmin.createResolver(async (parent, args, context, info) => {
+        let site = await Sites.create(args);
+        const user = await Users.find({id: args.manager});
+        user.sites.push(site);
+        user.save();
+        return Site.populate(site, { path: "manager"});
+    }),
+    updateSite: isAdmin.createResolver((parent, args, context, info) => Sites.update(args)),
+    deleteSite: isAdmin.createResolver((parent, args, context, info) => Sites.remove(args)),
+    makeSiteEntry: isManager.createResolver(async (parent, {siteId, ...args}, context, info) => {
+        // console.log(siteId);
+        // console.log(args);
         const site = await Sites.find({id: siteId});
-        console.log(site);
+        // console.log(site);
         const entry = await SiteEntries.create(args);
-        console.log(entry);
+        // console.log(entry);
         site.entries.unshift(entry);
-        const { _id, createdAt, updatedAt, __v, ...rest} = entry.toObject();
-        console.log("rest....", rest);
+        const { _id, createdAt, updatedAt, __v, total, ...rest} = entry.toObject();
+        // console.log("rest....", rest);
         Object.values(rest).forEach(e=> site.cost += e.cost);
-        site.save();
+        await site.save();
         return entry;
-    },
+    }),
 }
 
 const Mutation = {

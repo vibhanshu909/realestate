@@ -11,7 +11,7 @@ const createResolver = (resolver) => {
     return resolver;
 };
 
-const isAuth = createResolver((parent, args, context, info) => {    
+const isAuth = createResolver((parent, args, context, info) => {
     if(context.expired){
         throw new Error("Session Expired");
     }
@@ -29,11 +29,11 @@ const isAdmin = isAuth.createResolver((parent, args, context, info) => {
     return context;
 });
 
-const isSuperAdmin = isAdmin.createResolver((parent, args, context, info) => {
-    if(context.user.role < ROLES.SUPERADMIN){
-        throw new Error("Not a Super Administrator");
+const isManager = isAuth.createResolver((parent, args, context, info) => {
+    if(context.user.role < ROLES.MANAGER){
+        throw new Error("Not a Manager");
     }
     return context;
 });
 
-export { createResolver, isAuth, isAdmin, isSuperAdmin };
+export { createResolver, isAuth, isAdmin, isManager };
