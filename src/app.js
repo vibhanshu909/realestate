@@ -9,9 +9,15 @@ const app = express();
 
 app.use(logger('dev'));
 
-
+var whitelist = ['http://kka.easylucknow.com', 'https://kka.easylucknow.com']
 var corsOptions = {
-  origin: "*",
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type", "authorization"]
