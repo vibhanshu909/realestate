@@ -1,0 +1,13 @@
+version: '2'
+services:
+  nginx:
+    image: nginx:latest    
+    ports:
+    - "8080:80"
+    links:
+      - app:app
+    volumes:
+      - ./build:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  app:
+    build: .    

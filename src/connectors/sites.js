@@ -25,7 +25,7 @@ const typeDefs = `
         cost: Float!
     }
     type SiteEntryOtherOutput {
-        quantity: Int!,
+        quantity: String!,
         cost: Float!
     }
     input SiteEntryInput {
@@ -51,6 +51,10 @@ const typeDefs = `
         createdAt: String!
         updatedAt: String!
         total: Int!,
+    }
+    
+    type Status {
+        status: Boolean!
     }
 `;
 
@@ -101,8 +105,10 @@ const MutationSchema = `
         cement: SiteEntryInput,
         saria: SiteEntryInput,
         dust: SiteEntryInput,
-        other: SiteEntryOtherInput
+        other: SiteEntryOtherInput,
+        createdAt: String!
     ): SiteEntry
+    deleteSiteEntries(siteId: String!, ids: [String!]!): Status
 `;
 
 // Mutation resolvers
@@ -116,16 +122,16 @@ const RootMutation = {
     }),
     updateSite: isAdmin.createResolver((parent, args, context, info) => Sites.update(args)),
     deleteSite: isAdmin.createResolver((parent, args, context, info) => Sites.remove(args)),
-    makeSiteEntry: isManager.createResolver(async (parent, {siteId, ...args}, context, info) => {
-        // console.log(siteId);
-        // console.log(args);
-        const site = await Sites.find({id: siteId});
-        // console.log(site);
+    deleteSiteEntry: isAdmin.createResolver((parent, args, context, info) => {
+        let site = Sites.find({id: args.siteId});
+        await site.entries.pull(args.ids).save();
+        return {status: true};
+    }),
+    makeSiteEntry: isManager.createResolver(async (parent, {siteId, ...args}, context, info) => {        
+        const site = await Sites.find({id: siteId});    
         const entry = await SiteEntries.create(args);
-        // console.log(entry);
         site.entries.unshift(entry);
-        const { _id, createdAt, updatedAt, __v, total, ...rest} = entry.toObject();
-        // console.log("rest....", rest);
+        const { _id, createdAt, updatedAt, __v, total, ...rest} = entry.toObject();        
         Object.values(rest).forEach(e=> site.cost += e.cost);
         await site.save();
         return entry;
