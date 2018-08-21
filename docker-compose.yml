@@ -9,5 +9,11 @@ services:
     volumes:
       - ./build:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  mongo:
+    image: mongo:latest
+    ports:
+    - "27017:27017"
   app:
-    build: .    
+    build: .
+    links:
+      - mongo:mongo
