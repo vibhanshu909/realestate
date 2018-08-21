@@ -9,7 +9,7 @@ const app = express();
 
 app.use(logger('dev'));
 
-var whitelist = ['http://kka.easylucknow.com', 'https://kka.easylucknow.com']
+var whitelist = ['http://kka.easylucknow.com/', 'http://kka.easylucknow.com', 'https://kka.easylucknow.com']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
