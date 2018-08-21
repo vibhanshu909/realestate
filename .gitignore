@@ -14,8 +14,6 @@ Desktop.ini
 
 
 # npm
-dist
-gzipped
 node_modules
 package-lock.json
 *.log
@@ -27,5 +25,4 @@ coverage
 
 # Benchmarking
 benchmarks/graphs
-build
 dist
