@@ -95,6 +95,7 @@ const MutationSchema = `
     createSite(name: String!, location: String!, manager: String!):Site
     updateSite(id: String!, sitename: String!, location: String!): Site
     deleteSite(id: String!): Site
+    deleteSiteEntry(siteId: String!, ids: [String!]!): Status
     makeSiteEntry(
         siteId: String!,
         mistri: SiteEntryInput,
@@ -122,9 +123,10 @@ const RootMutation = {
     }),
     updateSite: isAdmin.createResolver((parent, args, context, info) => Sites.update(args)),
     deleteSite: isAdmin.createResolver((parent, args, context, info) => Sites.remove(args)),
-    deleteSiteEntry: isAdmin.createResolver((parent, args, context, info) => {
-        let site = Sites.find({id: args.siteId});
-        await site.entries.pull(args.ids).save();
+    deleteSiteEntry: isAdmin.createResolver(async (parent, args, context, info) => {
+        let site = await Sites.find({id: args.siteId});
+        await Promise.all(args.ids.map(id => site.entries.pull(id)));
+        await site.save();
         return {status: true};
     }),
     makeSiteEntry: isManager.createResolver(async (parent, {siteId, ...args}, context, info) => {        
