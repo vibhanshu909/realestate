@@ -31,7 +31,8 @@ const SiteSchema = Schema({
 
 SiteSchema.pre('save', async function(next){
     let total = 0;
-    const { cost, entries } = await this.populate('entries').toObject();    
+    const { cost, entries } = (await Site.populate(this, 'entries')).toObject();    
+    console.log('entries....', entries);
     entries.forEach(e => total += e.total);
     console.log("total..........................", total);
     this.cost = total;
