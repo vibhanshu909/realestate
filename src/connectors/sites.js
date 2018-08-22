@@ -133,9 +133,9 @@ const RootMutation = {
         const site = await Sites.find({id: siteId});    
         const entry = await SiteEntries.create(args);
         site.entries.unshift(entry);
-        const { _id, createdAt, updatedAt, __v, total, ...rest} = entry.toObject();        
-        Object.values(rest).forEach(e=> site.cost += e.cost);
-        await site.save();
+        // const { _id, createdAt, updatedAt, __v, total, ...rest} = entry.toObject();        
+        // Object.values(rest).forEach(e=> site.cost += e.cost);
+        site.save();
         return entry;
     }),
 }

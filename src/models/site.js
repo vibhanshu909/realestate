@@ -29,6 +29,15 @@ const SiteSchema = Schema({
     timestamps: true
 });
 
+SiteSchema.pre('save', async function(next){
+    let total = 0;
+    const { cost, entries } = await this.populate('entries').toObject();    
+    entries.forEach(e => total += e.total);
+    console.log("total..........................", total);
+    this.cost = total;
+    return next();
+});
+
 const repeater = {
     quantity: { type: Number, required: true, min: 0},
     cost: { type: Number, required: true, min: 0.00}
