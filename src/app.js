@@ -37,6 +37,6 @@ const options = {
 };
 
 app.use('/', express.static(staticFolder, options));
-// app.use('/*', static);
+app.use('/*', express.static(staticFolder, options));
 
 export default app;
