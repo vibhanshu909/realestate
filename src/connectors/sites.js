@@ -69,7 +69,7 @@ const Query = {
     Site: {
         // entries: (_, { id, limit }, context, info) => {return Site.findById({id}).populate({path: 'entries'});}
         count: (_, args, context, info) => {
-            console.log("count....", context.count);
+            // console.log("count....", context.count);
             return context.count;
         }
     },
@@ -79,7 +79,7 @@ const Query = {
 
 const RootQuery = {
     sites: isAdmin.createResolver((parent, args, context, info) => {
-        context.count = Site.count({});
+        context.count = Site.countDocuments();
         return Sites.all(args).populate('manager')
     }),
     site: isManager.createResolver(async (parent, {id, limit, skip}, context, info) => {
@@ -87,6 +87,18 @@ const RootQuery = {
         console.log("length....", site.entries.length);
         context.count = site.entries.length;
         return Sites.find({id}).populate('manager').populate({ path: 'entries', options: {limit, skip, sort: "-createdAt"}});
+        // result = await Promise.resolve(result);        
+        // result.entries.sort((a, b) => {
+        //     const aDate = new Date(a.createdAt);
+        //     const bDate = new Date(b.createdAt);
+        //     console.log(aDate, bDate);
+        //     // if (aDate < bDate) return -1;
+        //     if (aDate < bDate) return 1;
+          
+        //     return 0;
+        //   });
+        // console.log(result.entries.toObject());
+        // return result;
     }),
 };
 
@@ -94,7 +106,7 @@ const RootQuery = {
 const MutationSchema = `
     createSite(name: String!, location: String!, manager: String!):Site
     updateSite(id: String!, sitename: String!, location: String!): Site
-    deleteSite(id: String!): Site
+    deleteSites(ids: [String!]!): Status
     deleteSiteEntry(siteId: String!, ids: [String!]!): Status
     makeSiteEntry(
         siteId: String!,
@@ -122,7 +134,7 @@ const RootMutation = {
         return Site.populate(site, { path: "manager"});
     }),
     updateSite: isAdmin.createResolver((parent, args, context, info) => Sites.update(args)),
-    deleteSite: isAdmin.createResolver((parent, args, context, info) => Sites.remove(args)),
+    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => {await Sites.remove(args); return {status: true}}),
     deleteSiteEntry: isAdmin.createResolver(async (parent, args, context, info) => {
         let site = await Sites.find({id: args.siteId});
         await Promise.all(args.ids.map(id => site.entries.pull(id)));

@@ -18,9 +18,9 @@ export default function(model){
             return await model.findByIdAndUpdate(id, rest);
         },
 
-        remove: async function(args) {
-            const { id } = args;
-            return await model.findByIdAndRemove(id);
+        remove: async function({ids}) {           
+            console.log("args...", ids); 
+            return await model.deleteMany({ _id: { '$in':ids}});
         },
 
         model,
