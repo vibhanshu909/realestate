@@ -27,7 +27,7 @@ app.use(cors(corsOptions));
 
 graphqlConfig(app);
 
-let staticFolder = "gzipped/";
+let staticFolder = "build/";
 app.use('/', express.static(staticFolder,{ maxage: '1h'}));
 app.use('/*', express.static(staticFolder,{ maxage: '1h'}));
 
