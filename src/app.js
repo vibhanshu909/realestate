@@ -1,7 +1,6 @@
 import express from 'express';
 import logger from 'morgan';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import graphqlConfig from './config/graphql';
 
 // Initialize the app
@@ -9,7 +8,7 @@ const app = express();
 
 app.use(logger('dev'));
 
-var whitelist = ['http://kka.easylucknow.com', 'https://kka.easylucknow.com']
+var whitelist = ['https://kka.easylucknow.com']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.includes(origin) !== -1) {

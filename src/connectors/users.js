@@ -35,6 +35,11 @@ const typeDefs = `
         updatedAt: String!
         count: Int!
     }
+    input UserInput {
+        username: String!
+        password: String!
+    }
+
     type Login{
         token: String!
     }
@@ -50,7 +55,7 @@ const QuerySchema = `
 const Query = {
     User: {
         count: (_, args, context, info) => {
-            console.log("count....", context.count);
+            // console.log("count....", context.count);
             return context.count;
         }
     },
@@ -66,18 +71,18 @@ const RootQuery = {
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createUser(username: String!, password: String!):User
-    updateUser(id: String!, username: String!, password: String!): User
+    createUser(data: UserInput!):User
+    updateUser(id: String!, data: UserInput!): User
     deleteUser(id: String!): User
-    login(username: String!, password: String!): Login
+    login(data: UserInput!): Login
 `;
 
 // Mutation resolvers
 const RootMutation = {
-    createUser: isAdmin.createResolver((parent, args, context, info) => Users.create(args)),
-    updateUser: isManager.createResolver((parent, args, context, info) => Users.update(args)),
+    createUser: isAdmin.createResolver((parent, {data}, context, info) => Users.create(data)),
+    updateUser: isManager.createResolver((parent, {id, data}, context, info) => Users.update({id, ...data})),
     deleteUser: isAdmin.createResolver((parent, args, context, info) => Users.remove(args)),
-    login: (parent, args, context, info) => Users.login(args),
+    login: (parent, {data}, context, info) => Users.login(data),
 }
 const Mutation = {
 

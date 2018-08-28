@@ -1,10 +1,9 @@
-import jwt from 'jsonwebtoken';
-import {Site, SiteEntry} from '../models/site';
-import config from '../config/main';
-import AuthDirective from '../directives/auth_directive';
+import { Site, SiteEntry } from '../models/site';
 import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
 import { Users } from './users';
+
+
 export const Sites = crud(Site);
 export const SiteEntries = crud(SiteEntry);
 
@@ -20,23 +19,14 @@ const typeDefs = `
         updatedAt: String!
         count: Int!
     }
-    type SiteEntryOutput {
-        quantity: Int!,
-        cost: Float!
-    }
-    type SiteEntryOtherOutput {
-        quantity: String!,
-        cost: Float!
-    }
-    input SiteEntryInput {
-        quantity: Int!,
-        cost: Float!
-    }
-    input SiteEntryOtherInput {
-        quantity: String!,
-        cost: Float!
-    }
 
+    input SiteInput {
+        name: String!
+        location: String!
+        manager: String!
+        createdAt: String!
+    }
+    
     type SiteEntry {
         id: ID!
         mistri: SiteEntryOutput
@@ -51,6 +41,40 @@ const typeDefs = `
         createdAt: String!
         updatedAt: String!
         total: Int!,
+    }
+
+    type SiteEntryOutput {
+        quantity: Int!,
+        cost: Float!
+    }
+    
+    type SiteEntryOtherOutput {
+        quantity: String!,
+        cost: Float!
+    }
+
+    
+    input SiteEntryInput {
+        mistri: SiteEntryFieldInput,
+        labour: SiteEntryFieldInput,
+        eit: SiteEntryFieldInput,
+        morang: SiteEntryFieldInput,
+        githi: SiteEntryFieldInput,
+        cement: SiteEntryFieldInput,
+        saria: SiteEntryFieldInput,
+        dust: SiteEntryFieldInput,
+        other: SiteEntryFieldOtherInput,
+        createdAt: String!
+    }
+    
+    input SiteEntryFieldInput {
+        quantity: Int!,
+        cost: Float!
+    }
+    
+    input SiteEntryFieldOtherInput {
+        quantity: String!,
+        cost: Float!
     }
     
     type Status {
@@ -67,9 +91,7 @@ const QuerySchema = `
 // Query resolvers
 const Query = {
     Site: {
-        // entries: (_, { id, limit }, context, info) => {return Site.findById({id}).populate({path: 'entries'});}
         count: (_, args, context, info) => {
-            // console.log("count....", context.count);
             return context.count;
         }
     },
@@ -82,71 +104,49 @@ const RootQuery = {
         context.count = Site.countDocuments();
         return Sites.all(args).populate('manager')
     }),
-    site: isManager.createResolver(async (parent, {id, limit, skip}, context, info) => {
-        const site = await Sites.find({id});
+    site: isManager.createResolver(async (parent, { id, limit, skip }, context, info) => {
+        const site = await Sites.find({ id });
         console.log("length....", site.entries.length);
         context.count = site.entries.length;
-        return Sites.find({id}).populate('manager').populate({ path: 'entries', options: {limit, skip, sort: "-createdAt"}});
-        // result = await Promise.resolve(result);        
-        // result.entries.sort((a, b) => {
-        //     const aDate = new Date(a.createdAt);
-        //     const bDate = new Date(b.createdAt);
-        //     console.log(aDate, bDate);
-        //     // if (aDate < bDate) return -1;
-        //     if (aDate < bDate) return 1;
-          
-        //     return 0;
-        //   });
-        // console.log(result.entries.toObject());
-        // return result;
+        return Sites.find({ id }).populate('manager').populate({ path: 'entries', options: { limit, skip, sort: "-createdAt" } });
     }),
 };
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createSite(name: String!, location: String!, manager: String!):Site
-    updateSite(id: String!, sitename: String!, location: String!): Site
+    createSite(data: SiteInput):Site
+    updateSite(id: String!, data: SiteInput!): Site
     deleteSites(ids: [String!]!): Status
     deleteSiteEntry(siteId: String!, ids: [String!]!): Status
     makeSiteEntry(
         siteId: String!,
-        mistri: SiteEntryInput,
-        labour: SiteEntryInput,
-        eit: SiteEntryInput,
-        morang: SiteEntryInput,
-        githi: SiteEntryInput,
-        cement: SiteEntryInput,
-        saria: SiteEntryInput,
-        dust: SiteEntryInput,
-        other: SiteEntryOtherInput,
-        createdAt: String!
+        data: SiteEntryInput!
     ): SiteEntry
     deleteSiteEntries(siteId: String!, ids: [String!]!): Status
 `;
 
 // Mutation resolvers
 const RootMutation = {
-    createSite: isAdmin.createResolver(async (parent, args, context, info) => {
-        let site = await Sites.create(args);
-        const user = await Users.find({id: args.manager});
+    createSite: isAdmin.createResolver(async (parent, { data }, context, info) => {
+        console.log("args....", data);
+        let site = await Sites.create(data);
+        const user = await Users.find({ id: data.manager });
         user.sites.push(site);
         user.save();
-        return Site.populate(site, { path: "manager"});
+        return Site.populate(site, { path: "manager" });
     }),
-    updateSite: isAdmin.createResolver((parent, args, context, info) => Sites.update(args)),
-    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => {await Sites.remove(args); return {status: true}}),
+    updateSite: isAdmin.createResolver((parent, {id, data}, context, info) => Sites.update({id, ...data})),
+    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => { await Sites.remove(args); return { status: true } }),
     deleteSiteEntry: isAdmin.createResolver(async (parent, args, context, info) => {
-        let site = await Sites.find({id: args.siteId});
+        let site = await Sites.find({ id: args.siteId });
         await Promise.all(args.ids.map(id => site.entries.pull(id)));
         await site.save();
-        return {status: true};
+        return { status: true };
     }),
-    makeSiteEntry: isManager.createResolver(async (parent, {siteId, ...args}, context, info) => {        
-        const site = await Sites.find({id: siteId});    
-        const entry = await SiteEntries.create(args);
+    makeSiteEntry: isManager.createResolver(async (parent, { siteId, data }, context, info) => {
+        const site = await Sites.find({ id: siteId });
+        const entry = await SiteEntries.create(data);
         site.entries.unshift(entry);
-        // const { _id, createdAt, updatedAt, __v, total, ...rest} = entry.toObject();        
-        // Object.values(rest).forEach(e=> site.cost += e.cost);
         site.save();
         return entry;
     }),
@@ -161,4 +161,4 @@ const Mutation = {
 //     authenticated: AuthDirective,
 // };
 
-export default { typeDefs, QuerySchema,  MutationSchema, RootQuery, RootMutation, Query, Mutation };
+export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, Query, Mutation };

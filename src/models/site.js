@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 
 var Schema = mongoose.Schema;
 
@@ -31,10 +30,8 @@ const SiteSchema = Schema({
 
 SiteSchema.pre('save', async function(next){
     let total = 0;
-    const { cost, entries } = (await Site.populate(this, 'entries')).toObject();    
-    console.log('entries....', entries);
-    entries.forEach(e => total += e.total);
-    console.log("total..........................", total);
+    const { entries } = (await Site.populate(this, 'entries')).toObject();        
+    entries.forEach(e => total += e.total);    
     this.cost = total;
     return next();
 });
@@ -66,10 +63,8 @@ SiteEntrySchema.index({createdAt: 1})
 //
 SiteEntrySchema.pre('save', function(next){
     let total = 0;
-    const { _id, createdAt, updatedAt, total: _, _v, ...rest } = this.toObject();
-    console.log(rest);
-    Object.values(rest).forEach(e => total += e.cost);
-    console.log("total..........................", total);
+    const { _id, createdAt, updatedAt, total: _, _v, ...rest } = this.toObject();    
+    Object.values(rest).forEach(e => total += e.cost);    
     this.total = total;
     return next();
 });
