@@ -46,11 +46,13 @@ const typeDefs = `
     type SiteEntryOutput {
         quantity: Int!,
         cost: Float!
+        paid: Boolean!
     }
     
     type SiteEntryOtherOutput {
         quantity: String!,
         cost: Float!
+        paid: Boolean!
     }
 
     
@@ -70,11 +72,13 @@ const typeDefs = `
     input SiteEntryFieldInput {
         quantity: Int!,
         cost: Float!
+        paid: Boolean!
     }
     
     input SiteEntryFieldOtherInput {
         quantity: String!,
         cost: Float!
+        paid: Boolean!
     }
     
     type Status {

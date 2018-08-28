@@ -24,21 +24,22 @@ const SiteSchema = Schema({
         default: 0,
     }
 },
-{
-    timestamps: true
-});
+    {
+        timestamps: true
+    });
 
-SiteSchema.pre('save', async function(next){
+SiteSchema.pre('save', async function (next) {
     let total = 0;
-    const { entries } = (await Site.populate(this, 'entries')).toObject();        
-    entries.forEach(e => total += e.total);    
+    const { entries } = (await Site.populate(this, 'entries')).toObject();
+    entries.forEach(e => total += e.total);
     this.cost = total;
     return next();
 });
 
 const repeater = {
-    quantity: { type: Number, required: true, min: 0},
-    cost: { type: Number, required: true, min: 0.00}
+    quantity: { type: Number, required: true, min: 0 },
+    cost: { type: Number, required: true, min: 0.00 },
+    paid: { type: Boolean, default: false }
 }
 
 const SiteEntrySchema = Schema({
@@ -51,20 +52,21 @@ const SiteEntrySchema = Schema({
     saria: repeater,
     dust: repeater,
     other: {
-        quantity: { type: String, required: true},
-        cost: { type: Number, required: true, min: 0.00}
+        quantity: { type: String, required: true },
+        cost: { type: Number, required: true, min: 0.00 },
+        paid: { type: Boolean, default: false }
     },
-    total: { type: Number, default: 0, min: 0.00}
+    total: { type: Number, default: 0, min: 0.00 }
 },
-{
-    timestamps: true
-});
-SiteEntrySchema.index({createdAt: 1})
+    {
+        timestamps: true
+    });
+SiteEntrySchema.index({ createdAt: 1 })
 //
-SiteEntrySchema.pre('save', function(next){
+SiteEntrySchema.pre('save', function (next) {
     let total = 0;
-    const { _id, createdAt, updatedAt, total: _, _v, ...rest } = this.toObject();    
-    Object.values(rest).forEach(e => total += e.cost);    
+    const { _id, createdAt, updatedAt, total: _, _v, ...rest } = this.toObject();
+    Object.values(rest).forEach(e => total += e.cost);
     this.total = total;
     return next();
 });
