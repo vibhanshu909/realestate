@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import db from 'mongoose';
 
 const config = {
     secret: "+4qqu4ot3c61((zq!f@!*#60j2eb%(_(s#f+h-!xs+48o*#sgf7o>v`(KHN'>T|w83Z2v]MT_#g?<o~)LEJ,ADu]sQXps&=",
@@ -7,12 +7,14 @@ const config = {
 
 // mongoose.Promise = global.Promise;
 // Connecting to the database
-mongoose.connect(config.database)
+db.connect(config.database)
 .then(() => {
     console.log("Successfully connected to the database");
 }).catch(err => {
     console.log('Could not connect to the database. Exiting now...');
     process.exit();
 });
-mongoose.set('debug', true);
+db.set('debug', true);
+console.log("congig/main");
+export const mongoose = db;
 export default config;

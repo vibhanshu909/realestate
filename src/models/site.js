@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+import { mongoose } from '../config/main';
+import { Users } from '../connectors/users';
 
 var Schema = mongoose.Schema;
 
@@ -17,6 +18,11 @@ const SiteSchema = Schema({
         ref: 'User',
         required: true,
     },
+    managerSpentAmount: {
+        type: Number,
+        min: 0,
+        default: 0,
+    },
     entries: [{ type: Schema.Types.ObjectId, ref: 'SiteEntries' }],
     cost: {
         type: Number,
@@ -30,9 +36,23 @@ const SiteSchema = Schema({
 
 SiteSchema.pre('save', async function (next) {
     let total = 0;
-    const { entries } = (await Site.populate(this, 'entries')).toObject();
+    const user = await Users.find({ id: this.manager });
+    const site = (await (await Site.populate(this, 'entries')).populate('manager'));
+    const { entries } = site.toObject();
     entries.forEach(e => total += e.total);
+    user.spentAmount = this.managerSpentAmount;
+    user.save();
     this.cost = total;
+    return next();
+});
+
+SiteSchema.post('remove', async function (next) {
+    console.log("Site Removed...");
+    // return Users.remove({ ids: [this.manager] }, next);
+    let user = await Users.find({ id: this.manager });
+    user.sites.pull(this.id);
+    user.save();
+    // Users.remove({ ids: [user.id] });
     return next();
 });
 

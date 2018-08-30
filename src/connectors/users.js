@@ -31,6 +31,10 @@ const typeDefs = `
         id: ID!
         username: String!
         password: String!
+        lastCreditAmount: String!
+        totalReceivedAmount: String!
+        spentAmount: String!
+        remainingAmount: String!
         createdAt: String!
         updatedAt: String!
         count: Int!
@@ -38,6 +42,11 @@ const typeDefs = `
     input UserInput {
         username: String!
         password: String!
+        lastCreditAmount: String!        
+    }
+    input LoginInput {
+        username: String!
+        password: String!     
     }
 
     type Login{
@@ -74,7 +83,7 @@ const MutationSchema = `
     createUser(data: UserInput!):User
     updateUser(id: String!, data: UserInput!): User
     deleteUser(id: String!): User
-    login(data: UserInput!): Login
+    login(data: LoginInput!): Login
 `;
 
 // Mutation resolvers

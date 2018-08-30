@@ -1,3 +1,4 @@
+import mongoose, { mongo } from 'mongoose';
 import { Site, SiteEntry } from '../models/site';
 import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
@@ -13,6 +14,7 @@ const typeDefs = `
         name: String!
         location: String!
         manager: User
+        managerSpentAmount: Int!
         cost: Int!
         entries: [SiteEntry!]
         createdAt: String!
@@ -139,8 +141,11 @@ const RootMutation = {
         user.save();
         return Site.populate(site, { path: "manager" });
     }),
-    updateSite: isAdmin.createResolver((parent, {id, data}, context, info) => Sites.update({id, ...data})),
-    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => { await Sites.remove(args); return { status: true } }),
+    updateSite: isAdmin.createResolver((parent, { id, data }, context, info) => Sites.update({ id, ...data })),
+    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => {         
+        await Sites.remove(args); 
+        return { status: true } 
+    }),
     deleteSiteEntry: isAdmin.createResolver(async (parent, args, context, info) => {
         let site = await Sites.find({ id: args.siteId });
         await Promise.all(args.ids.map(id => site.entries.pull(id)));
@@ -151,6 +156,10 @@ const RootMutation = {
         const site = await Sites.find({ id: siteId });
         const entry = await SiteEntries.create(data);
         site.entries.unshift(entry);
+        let managerSpentAmount = 0;
+        const { total, ...rest } = entry.toObject();
+        Object.values(rest).forEach(e => managerSpentAmount += e.paid ? e.cost : 0)
+        site.managerSpentAmount += managerSpentAmount;        
         site.save();
         return entry;
     }),
