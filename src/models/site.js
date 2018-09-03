@@ -34,26 +34,22 @@ const SiteSchema = Schema({
         timestamps: true
     });
 
-SiteSchema.pre('save', async function (next) {
+SiteSchema.post('save', async function (doc) {
+    console.log("Site post save...");
     let total = 0;
-    const user = await Users.find({ id: this.manager });
     const site = (await (await Site.populate(this, 'entries')).populate('manager'));
     const { entries } = site.toObject();
     entries.forEach(e => total += e.total);
-    user.spentAmount = this.managerSpentAmount;
-    user.save();
     this.cost = total;
-    return next();
+    (await Users.find({ id: this.manager })).debit(site.managerSpentAmount);
+    console.log("Done...");
 });
 
-SiteSchema.post('remove', async function (next) {
-    console.log("Site Removed...");
-    // return Users.remove({ ids: [this.manager] }, next);
-    let user = await Users.find({ id: this.manager });
-    user.sites.pull(this.id);
-    user.save();
-    // Users.remove({ ids: [user.id] });
-    return next();
+SiteSchema.post('remove', async function (doc) {
+    console.log("Site Removed...");    
+    let user = await Users.find({ id: doc.manager });
+    user.sites.pull(doc.id);
+    user.save();    
 });
 
 const repeater = {

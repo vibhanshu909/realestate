@@ -1,8 +1,8 @@
 export default function(model){
     return {
 
-        all: function({limit, skip}) {
-            return model.find().skip(skip).limit(limit).sort({createdAt: -1});
+        all: function({query, limit, skip}) {
+            return model.find(query).skip(skip).limit(limit).sort({createdAt: -1});
         },
 
         find: function({id}) {
@@ -20,7 +20,11 @@ export default function(model){
 
         remove: async function({ids}) {           
             console.log("args...", ids); 
-            return await model.deleteMany({ _id: { '$in':ids}});
+            // ids.forEach(e => (await model.deleteOne({ _id: e })));
+            ids.forEach(async (e) => {
+                await model.findOneAndRemove({_id: e}, (err, item) => item.remove());
+            })
+            // return await model.deleteMany({ _id: { '$in':ids}});
         },
 
         model,

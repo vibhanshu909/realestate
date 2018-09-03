@@ -9,19 +9,19 @@ export const Users = crud(User);
 Users.login = async (params) => {
     console.log(params);
     const { username, password } = params;
-    const user = await User.findOne({username});
-    if(!user){
+    const user = await User.findOne({ username });
+    if (!user) {
         throw new Error("Can't find user");
     }
     const isMatch = await user.comparePassword(password);
-    if(isMatch){
+    if (isMatch) {
         const { _id } = user;
-        const token = jwt.sign( {id: _id, role: user.role}, config.secret, {
+        const token = jwt.sign({ id: _id, role: user.role }, config.secret, {
             expiresIn: "1y"
         });
         return { token };
     }
-    else{
+    else {
         throw new Error("Incorrect Password");
     }
 };
@@ -30,11 +30,10 @@ const typeDefs = `
     type User {
         id: ID!
         username: String!
-        password: String!
-        lastCreditAmount: String!
-        totalReceivedAmount: String!
-        spentAmount: String!
-        remainingAmount: String!
+        password: String!        
+        totalReceivedAmount: Int!        
+        spent: Int!
+        balance: Int!
         createdAt: String!
         updatedAt: String!
         count: Int!
@@ -42,7 +41,7 @@ const typeDefs = `
     input UserInput {
         username: String!
         password: String!
-        lastCreditAmount: String!        
+        totalReceivedAmount: Int!
     }
     input LoginInput {
         username: String!
@@ -65,14 +64,16 @@ const Query = {
     User: {
         count: (_, args, context, info) => {
             // console.log("count....", context.count);
-            return context.count;
-        }
+            return context.data.count;
+        }        
     },
 };
 
 const RootQuery = {
     users: isAdmin.createResolver((parent, args, context, info) => {
-        context.count = User.count({});
+        context.data = {
+            count: User.count({}),            
+        };
         return Users.all(args)
     }),
     user: isAdmin.createResolver((parent, args, context, info) => Users.find(args)),
@@ -88,10 +89,10 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-    createUser: isAdmin.createResolver((parent, {data}, context, info) => Users.create(data)),
-    updateUser: isManager.createResolver((parent, {id, data}, context, info) => Users.update({id, ...data})),
+    createUser: isAdmin.createResolver((parent, { data }, context, info) => Users.create(data)),
+    updateUser: isManager.createResolver((parent, { id, data }, context, info) => Users.update({ id, ...data })),
     deleteUser: isAdmin.createResolver((parent, args, context, info) => Users.remove(args)),
-    login: (parent, {data}, context, info) => Users.login(data),
+    login: (parent, { data }, context, info) => Users.login(data),
 }
 const Mutation = {
 
@@ -102,4 +103,4 @@ const Mutation = {
 //     authenticated: AuthDirective,
 // };
 
-export default { typeDefs, QuerySchema,  MutationSchema, RootQuery, RootMutation, Query, Mutation };
+export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, Query, Mutation };

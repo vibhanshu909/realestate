@@ -25,35 +25,28 @@ const UserSchema = Schema({
         enum: Object.values(ROLES),
         default: ROLES.MANAGER
     },
-
-    lastCreditAmount: {
-        type: Number,
-        default: 0,
-        min: 0
-    },
-
     totalReceivedAmount: {
         type: Number,
-        default: 0,
-        min: 0
+        default: 0,        
     },
-
-    spentAmount: {
+    spent: {
         type: Number,
         default: 0,
         min: 0
     },
-
-    remainingAmount: {
+    balance: {
         type: Number,
-        default: 0,
-        min: 0
+        default: 0
     },
-
+    // account: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Account",        
+    // },    
     sites: [{
         type: Schema.Types.ObjectId,
         ref: "Site"
-    }]
+    }],
+
 },
     {
         timestamps: true
@@ -71,40 +64,31 @@ UserSchema.pre('save', function (next) {
                 return next();
             });
         });
-    }    
-    else{
+    }
+    else {
         return next();
     }
 });
 
-UserSchema.pre('save', function (next) {
-    const user = this;
-    if (user.isModified("lastCreditAmount")) {
-        console.log("user object....", user.toObject());
-        user.totalReceivedAmount += user.lastCreditAmount;
-        user.remainingAmount += user.lastCreditAmount;
-        if (user.totalReceivedAmount !== user.remainingAmount + user.spentAmount) {
-            throw new Error("Amount Mismatch");
-        }
-        return next();
+UserSchema.pre('save',async function (next) {
+    if (this.isNew) {
+        this.balance = this.totalReceivedAmount;        
     }
-    else if(user.isModified("spentAmount")){
-        console.log("user object....", user.toObject());
-        user.remainingAmount -= user.spentAmount;
-        if (user.totalReceivedAmount !== user.remainingAmount + user.spentAmount) {
-            throw new Error("Amount Mismatch");
-        }
-        return next();
-    }
-    else{
-        return next();
-    }
+    return next();
 });
-
 
 
 UserSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
+UserSchema.methods.credit = async function (amount) {
+    return this.update({ totalReceivedAmount: this.totalReceivedAmount + amount, balance: this.balance + amount });
+}
 
-export default mongoose.model("User", UserSchema);
+UserSchema.methods.debit = async function (amount) {
+    console.log("debit...", amount);
+    return this.update({ spent: this.spent + amount, balance: this.balance - amount });
+}
+
+const User = mongoose.model("User", UserSchema);
+export default User;

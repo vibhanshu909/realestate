@@ -1,6 +1,7 @@
 import mongoose, { mongo } from 'mongoose';
 import { Site, SiteEntry } from '../models/site';
 import { isAdmin, isManager } from '../config/permissions';
+import {ROLES} from '../models/user';
 import crud from './crud';
 import { Users } from './users';
 
@@ -98,7 +99,7 @@ const QuerySchema = `
 const Query = {
     Site: {
         count: (_, args, context, info) => {
-            return context.count;
+            return context.data.count;
         }
     },
     SiteEntry: {
@@ -106,14 +107,20 @@ const Query = {
 };
 
 const RootQuery = {
-    sites: isAdmin.createResolver((parent, args, context, info) => {
-        context.count = Site.countDocuments();
-        return Sites.all(args).populate('manager')
+    sites: isManager.createResolver((parent, args, context, info) => {
+        context.data = { count: Site.countDocuments() };
+        const { user } = context;
+        if (user.role == ROLES.ADMIN){
+            return Sites.all(args).populate('manager');
+        }
+        else{
+            return Sites.all({query: {_id: {$in: user.sites}}, ...args}).populate('manager');
+        }
     }),
     site: isManager.createResolver(async (parent, { id, limit, skip }, context, info) => {
         const site = await Sites.find({ id });
         console.log("length....", site.entries.length);
-        context.count = site.entries.length;
+        context.data = { count: site.entries.length };
         return Sites.find({ id }).populate('manager').populate({ path: 'entries', options: { limit, skip, sort: "-createdAt" } });
     }),
 };
@@ -142,9 +149,9 @@ const RootMutation = {
         return Site.populate(site, { path: "manager" });
     }),
     updateSite: isAdmin.createResolver((parent, { id, data }, context, info) => Sites.update({ id, ...data })),
-    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => {         
-        await Sites.remove(args); 
-        return { status: true } 
+    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => {
+        await Sites.remove(args);
+        return { status: true }
     }),
     deleteSiteEntry: isAdmin.createResolver(async (parent, args, context, info) => {
         let site = await Sites.find({ id: args.siteId });
@@ -159,7 +166,7 @@ const RootMutation = {
         let managerSpentAmount = 0;
         const { total, ...rest } = entry.toObject();
         Object.values(rest).forEach(e => managerSpentAmount += e.paid ? e.cost : 0)
-        site.managerSpentAmount += managerSpentAmount;        
+        site.managerSpentAmount += managerSpentAmount;
         site.save();
         return entry;
     }),
