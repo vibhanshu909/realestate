@@ -3,7 +3,7 @@ import {Site, SiteEntry} from '../site';
 
 async function seed(){
     console.log("Seeding...");
-    const s = await Site.findById("5b767200bda3680e63bf5f5e");
+    const s = await Site.findById("5b8d3774bcba3653a8552cbd");
     for(let i=2; i<= 20; i++){
         let data = {
             quantity: i,

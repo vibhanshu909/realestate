@@ -34,15 +34,16 @@ const SiteSchema = Schema({
         timestamps: true
     });
 
-SiteSchema.post('save', async function (doc) {
-    console.log("Site post save...");
+SiteSchema.pre('save', async function (doc) {
     let total = 0;
-    const site = (await (await Site.populate(this, 'entries')).populate('manager'));
+    const site = (await (await Site.populate(this, 'entries')).populate('manager'));    
     const { entries } = site.toObject();
     entries.forEach(e => total += e.total);
     this.cost = total;
-    (await Users.find({ id: this.manager })).debit(site.managerSpentAmount);
-    console.log("Done...");
+});
+
+SiteSchema.post('save', async function () {
+    return (await Users.find({ id: this.manager })).debit(this.managerSpentAmount);    
 });
 
 SiteSchema.post('remove', async function (doc) {
@@ -78,12 +79,14 @@ const SiteEntrySchema = Schema({
         timestamps: true
     });
 SiteEntrySchema.index({ createdAt: 1 })
-//
+
 SiteEntrySchema.pre('save', function (next) {
+    console.log("Entry pre save...");
     let total = 0;
     const { _id, createdAt, updatedAt, total: _, _v, ...rest } = this.toObject();
     Object.values(rest).forEach(e => total += e.cost);
     this.total = total;
+    console.log("Done...", total);
     return next();
 });
 
