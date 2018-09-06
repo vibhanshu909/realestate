@@ -34,23 +34,31 @@ const SiteSchema = Schema({
         timestamps: true
     });
 
+SiteSchema.methods.reEval = async function(){
+    const site = await Site.populate(this, 'entries');
+    let managerSpentAmount = 0;
+    site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
+    this.update({managerSpentAmount});
+}
+
 SiteSchema.pre('save', async function (doc) {
     let total = 0;
-    const site = (await (await Site.populate(this, 'entries')).populate('manager'));    
+    const site = await Site.populate(this, 'entries');
     const { entries } = site.toObject();
     entries.forEach(e => total += e.total);
     this.cost = total;
 });
 
 SiteSchema.post('save', async function () {
-    return (await Users.find({ id: this.manager })).debit(this.managerSpentAmount);    
+    return (await Users.find({ id: this.manager })).reEval();    
 });
 
 SiteSchema.post('remove', async function (doc) {
     console.log("Site Removed...");    
     let user = await Users.find({ id: doc.manager });
+    await user.reEval();
     user.sites.pull(doc.id);
-    user.save();    
+    user.save();
 });
 
 const repeater = {
@@ -73,7 +81,8 @@ const SiteEntrySchema = Schema({
         cost: { type: Number, required: true, min: 0.00 },
         paid: { type: Boolean, default: false }
     },
-    total: { type: Number, default: 0, min: 0.00 }
+    total: { type: Number, default: 0, min: 0.00 },
+    managerSpentAmount: { type: Number, default: 0, min: 0.00 }
 },
     {
         timestamps: true
@@ -83,10 +92,33 @@ SiteEntrySchema.index({ createdAt: 1 })
 SiteEntrySchema.pre('save', function (next) {
     console.log("Entry pre save...");
     let total = 0;
-    const { _id, createdAt, updatedAt, total: _, _v, ...rest } = this.toObject();
-    Object.values(rest).forEach(e => total += e.cost);
+    let managerSpentAmount = 0;
+    const { _id, createdAt, updatedAt, total: _, managerSpentAmount: __, _v, ...rest } = this.toObject();
+    Object.values(rest).forEach(e => {
+        total += e.cost; 
+        managerSpentAmount += e.paid ? e.cost: 0;        
+    });
     this.total = total;
+    this.managerSpentAmount = managerSpentAmount;
     console.log("Done...", total);
+    return next();
+});
+
+SiteEntrySchema.pre('findOneAndUpdate', function (next) {
+    console.log("Entry pre findOneAndUpdate...");
+    let total = 0;
+    let managerSpentAmount = 0;
+    // console.log(this._update);
+    const { $set, $setOnInsert, ...rest } = this._update;
+    // console.log(rest);
+    Object.values(rest).forEach(e => {
+        total += e.cost; 
+        managerSpentAmount += e.paid ? e.cost: 0;        
+    });
+    this._update.total = total;
+    this._update.managerSpentAmount = managerSpentAmount;
+    console.log("Done...", total);
+    console.log("Done...", managerSpentAmount);
     return next();
 });
 

@@ -85,9 +85,13 @@ UserSchema.methods.credit = async function (amount) {
     return this.update({ totalReceivedAmount: this.totalReceivedAmount + amount, balance: this.balance + amount });
 }
 
-UserSchema.methods.debit = async function (amount) {
-    console.log("debit...", amount);
-    return this.update({ spent: this.spent + amount, balance: this.balance - amount });
+UserSchema.methods.reEval = async function(){
+    console.log("User reEval...");
+    const user = await User.populate(this, 'sites');
+    let managerSpentAmount = 0;
+    user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
+    console.log("Done...", managerSpentAmount);
+    return this.update({ spent: managerSpentAmount, balance: this.totalReceivedAmount - managerSpentAmount });
 }
 
 const User = mongoose.model("User", UserSchema);

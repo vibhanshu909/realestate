@@ -55,7 +55,7 @@ const typeDefs = `
 
 // Queries allowed in graphql
 const QuerySchema = `
-    users(limit: Int!, skip: Int = 0): [User]
+    users(limit: Int, skip: Int = 0): [User]
     user(id: String!): User
 `;
 
