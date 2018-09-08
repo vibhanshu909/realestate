@@ -21,9 +21,13 @@ export default function(model){
         remove: async function({ids}) {           
             console.log("args...", ids); 
             // ids.forEach(e => (await model.deleteOne({ _id: e })));
-            ids.forEach(async (e) => {
-                await model.findOneAndRemove({_id: e}, (err, item) => item.remove());
-            })
+            try {                
+                ids.forEach(async (e) => {
+                    await model.findOneAndRemove({_id: e}, (err, item) => item.remove());
+                })
+            } catch (error) {
+                
+            }
             // return await model.deleteMany({ _id: { '$in':ids}});
         },
 

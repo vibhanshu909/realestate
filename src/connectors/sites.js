@@ -1,4 +1,3 @@
-import mongoose, { mongo } from 'mongoose';
 import { Site, SiteEntry } from '../models/site';
 import { isAdmin, isManager } from '../config/permissions';
 import { ROLES } from '../models/user';
@@ -93,7 +92,8 @@ const typeDefs = `
 // Queries allowed in graphql
 const QuerySchema = `
     sites(limit: Int, skip: Int = 0): [Site]
-    site(id: String!, limit: Int = 15, skip: Int = 0): Site
+    site(id: String!): Site
+    siteEntries(id: String!, limit: Int = 15, skip: Int = 0): Site
     siteEntry(id: String!): SiteEntry
 `;
 
@@ -119,7 +119,22 @@ const RootQuery = {
             return Sites.all({ query: { _id: { $in: user.sites } }, ...args }).populate('manager');
         }
     }),
-    site: isManager.createResolver(async (parent, { id, limit, skip }, context, info) => {
+    site: isManager.createResolver((parent, args, context, info) => {
+        context.data = { count: Site.countDocuments() };
+        const { user } = context;
+        if (user.role == ROLES.ADMIN) {
+            return Sites.find(args).populate('manager');
+        }
+        else {
+            if(args.id in user.sites){
+                return Sites.find(args).populate('manager');
+            }
+            else{
+                throw new Error("Site doesn't belong to user");
+            }
+        }
+    }),
+    siteEntries: isManager.createResolver(async (parent, { id, limit, skip }, context, info) => {
         const site = await Sites.find({ id });
         console.log("length....", site.entries.length);
         context.data = { count: site.entries.length };
@@ -132,7 +147,7 @@ const RootQuery = {
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createSite(data: SiteInput):Site
+    createSite(data: SiteInput!):Site
     updateSite(id: String!, data: SiteInput!): Site
     deleteSites(ids: [String!]!): Status
     deleteSiteEntry(siteId: String!, ids: [String!]!): Status
