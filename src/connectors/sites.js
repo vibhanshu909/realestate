@@ -126,10 +126,10 @@ const RootQuery = {
             return Sites.find(args).populate('manager');
         }
         else {
-            if(args.id in user.sites){
+            if (args.id in user.sites) {
                 return Sites.find(args).populate('manager');
             }
-            else{
+            else {
                 throw new Error("Site doesn't belong to user");
             }
         }
@@ -173,7 +173,20 @@ const RootMutation = {
         user.save();
         return Site.populate(site, { path: "manager" });
     }),
-    updateSite: isAdmin.createResolver((parent, { id, data }, context, info) => Sites.update({ id, ...data })),
+    updateSite: isAdmin.createResolver(async (parent, { id, data }, context, info) => {
+        const oldSite = await Sites.find({ id });
+        if(oldSite.manager === data.manager){
+            return Sites.update({id, ...data});
+        }
+        const oldUser = await Users.find({ id: oldSite.manager });        
+        oldUser.sites.pull(id);
+        const user = await Users.find({ id: data.manager });
+        let result = await Sites.update({id, ...data});
+        user.sites.push(result);
+        oldUser.save();
+        user.save();
+        return result;
+    }),
     deleteSites: isAdmin.createResolver(async (parent, args, context, info) => {
         await Sites.remove(args);
         return { status: true }
@@ -185,24 +198,21 @@ const RootMutation = {
         return { status: true };
     }),
     makeSiteEntry: isManager.createResolver(async (parent, { siteId, data }, context, info) => {
-        let site = Sites.find({ id: siteId });
-        let entry = SiteEntries.create(data);
-        site = await site;
-        entry = await entry;
-        site.entries.unshift(entry);
-        let managerSpentAmount = 0;
-        const { total, ...rest } = entry.toObject();
-        Object.values(rest).forEach(e => managerSpentAmount += e.paid ? e.cost : 0)
-        site.managerSpentAmount += managerSpentAmount;
+        const site = await Sites.find({ id: siteId });
+        const entry = await SiteEntries.create(data); 
+        site.entries.unshift(entry);        
+        // const { managerSpentAmount } = entry.toObject();
+        // Object.values(rest).forEach(e => managerSpentAmount += e.paid ? e.cost : 0)
+        site.managerSpentAmount += entry.toObject().managerSpentAmount;
         site.save();
         return entry;
     }),
     updateSiteEntry: isManager.createResolver(async (parent, { siteId, id, data }, context, info) => {
         let site = Sites.find({ id: siteId });
-        let oldEntry = SiteEntries.model.findById(id);
-        let {managerSpentAmount} = (await oldEntry).toObject();
+        let oldEntry = SiteEntries.find({id});
+        let { managerSpentAmount } = (await oldEntry).toObject();
         await SiteEntries.model.findByIdAndUpdate(id, data);
-        let entry = await SiteEntries.model.findById(id);
+        let entry = await SiteEntries.find({id});
         site = await site;
         // site.entries.unshift(entry);                        
         site.managerSpentAmount += entry.toObject().managerSpentAmount - managerSpentAmount;

@@ -88,6 +88,7 @@ UserSchema.methods.credit = async function (amount) {
 UserSchema.methods.reEval = async function(){
     console.log("User reEval...");
     const user = await User.populate(this, 'sites');
+    console.log(user.toObject());
     let managerSpentAmount = 0;
     user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
     console.log("Done...", managerSpentAmount);
