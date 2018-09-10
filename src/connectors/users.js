@@ -34,6 +34,7 @@ const typeDefs = `
         totalReceivedAmount: Int!        
         spent: Int!
         balance: Int!
+        siteCount: Int!
         createdAt: String!
         updatedAt: String!
         count: Int!
@@ -65,7 +66,10 @@ const Query = {
         count: (_, args, context, info) => {
             // console.log("count....", context.count);
             return context.data.count;
-        }        
+        },
+        siteCount: (_, args, context, info) => {
+            return _.sites.length;
+        }
     },
 };
 
@@ -76,7 +80,9 @@ const RootQuery = {
         };
         return Users.all(args)
     }),
-    user: isAdmin.createResolver((parent, args, context, info) => Users.find(args)),
+    user: isManager.createResolver((parent, args, context, info) => {
+        return Users.find(args);
+    }),
 };
 
 // Mutations allowed in graphql
