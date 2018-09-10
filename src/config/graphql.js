@@ -10,7 +10,11 @@ import Users from '../connectors/users';
 import Sites from '../connectors/sites';
 
 export default function(app){
-    const typeDefs = `
+    const typeDefs = `        
+        type Status {
+            status: Boolean!
+        }
+        
         ${Users.typeDefs}
         ${Sites.typeDefs}
 

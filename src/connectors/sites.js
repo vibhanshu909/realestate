@@ -14,8 +14,9 @@ const typeDefs = `
         name: String!
         location: String!
         manager: User
-        managerSpentAmount: Int!
-        cost: Int!
+        entryCount: Int!
+        managerSpentAmount: Float!
+        cost: Float!
         entries: [SiteEntry!]
         createdAt: String!
         updatedAt: String!
@@ -42,8 +43,8 @@ const typeDefs = `
         other: SiteEntryOtherOutput
         createdAt: String!
         updatedAt: String!
-        managerSpentAmount: Int!
-        total: Int!
+        managerSpentAmount: Float!
+        total: Float!
     }
 
     type SiteEntryOutput {
@@ -83,10 +84,6 @@ const typeDefs = `
         cost: Float!
         paid: Boolean!
     }
-    
-    type Status {
-        status: Boolean!
-    }
 `;
 
 // Queries allowed in graphql
@@ -100,8 +97,11 @@ const QuerySchema = `
 // Query resolvers
 const Query = {
     Site: {
-        count: (_, args, context, info) => {
-            return context.data.count;
+        count: (_, args, ctx) => {
+            return ctx.data.count;
+        },
+        entryCount: (_, args, ctx) => {
+            return _.entries.length 
         }
     },
     SiteEntry: {
@@ -109,21 +109,21 @@ const Query = {
 };
 
 const RootQuery = {
-    sites: isManager.createResolver(async (parent, args, context, info) => {
-        context.data = { count: Site.countDocuments() };
-        const { user } = context;
+    sites: isManager.createResolver(async (_, args, ctx) => {
+        ctx.data = { count: Site.countDocuments() };
+        const { user } = ctx;
         if (user.role == ROLES.ADMIN) {
             return Sites.all(args).populate('manager');
         }
         else {
             let result = await Sites.all({ query: { _id: { $in: user.sites } }, ...args }).populate('manager');
-            context.data = { count: result.length };
+            ctx.data = { count: result.length };
             return result;
         }
     }),
-    site: isManager.createResolver((parent, args, context, info) => {
-        context.data = { count: Site.countDocuments() };
-        const { user } = context;
+    site: isManager.createResolver((_, args, ctx) => {
+        ctx.data = { count: Site.countDocuments() };
+        const { user } = ctx;
         if (user.role == ROLES.ADMIN) {
             return Sites.find(args).populate('manager');
         }
@@ -136,20 +136,20 @@ const RootQuery = {
             }
         }
     }),
-    siteEntries: isManager.createResolver(async (parent, { id, limit, skip }, context, info) => {
+    siteEntries: isManager.createResolver(async (_, { id, limit, skip }, ctx) => {
         const site = await Sites.find({ id });
         console.log("length....", site.entries.length);
-        context.data = { count: site.entries.length };
+        ctx.data = { count: site.entries.length };
         return Sites.find({ id }).populate('manager').populate({ path: 'entries', options: { limit, skip, sort: "-createdAt" } });
     }),
-    siteEntry: isManager.createResolver(async (parent, args, context, info) => {
+    siteEntry: isManager.createResolver(async (_, args, ctx) => {
         return SiteEntries.find(args);
     })
 };
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createSite(data: SiteInput!):Site
+    createSite(data: SiteInput!): Site
     updateSite(id: String!, data: SiteInput!): Site
     deleteSites(ids: [String!]!): Status
     deleteSiteEntry(siteId: String!, ids: [String!]!): Status
@@ -167,7 +167,7 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-    createSite: isAdmin.createResolver(async (parent, { data }, context, info) => {
+    createSite: isAdmin.createResolver(async (_, { data }, ctx) => {
         console.log("args....", data);
         let site = await Sites.create(data);
         const user = await Users.find({ id: data.manager });
@@ -175,7 +175,7 @@ const RootMutation = {
         user.save();
         return Site.populate(site, { path: "manager" });
     }),
-    updateSite: isAdmin.createResolver(async (parent, { id, data }, context, info) => {
+    updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
         const oldSite = await Sites.find({ id });
         if (oldSite.manager === data.manager) {
             return Sites.update({ id, ...data });
@@ -189,17 +189,17 @@ const RootMutation = {
         user.save();
         return result;
     }),
-    deleteSites: isAdmin.createResolver(async (parent, args, context, info) => {
+    deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
         await Sites.remove(args);
         return { status: true }
     }),
-    deleteSiteEntry: isAdmin.createResolver(async (parent, args, context, info) => {
+    deleteSiteEntry: isAdmin.createResolver(async (_, args, ctx) => {
         let site = await Sites.find({ id: args.siteId });
         await Promise.all(args.ids.map(id => site.entries.pull(id)));
         await site.save();
         return { status: true };
     }),
-    makeSiteEntry: isManager.createResolver(async (parent, { siteId, data }, context, info) => {
+    makeSiteEntry: isManager.createResolver(async (_, { siteId, data }, ctx) => {
         const site = await Sites.find({ id: siteId });
         const entry = await SiteEntries.create(data);
         site.entries.unshift(entry);
@@ -209,7 +209,7 @@ const RootMutation = {
         site.save();
         return entry;
     }),
-    updateSiteEntry: isManager.createResolver(async (parent, { siteId, id, data }, context, info) => {
+    updateSiteEntry: isManager.createResolver(async (_, { siteId, id, data }, ctx) => {
         let site = Sites.find({ id: siteId });
         let oldEntry = SiteEntries.find({ id });
         let { managerSpentAmount } = (await oldEntry).toObject();
