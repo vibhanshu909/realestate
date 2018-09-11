@@ -35,6 +35,7 @@ const typeDefs = `
         spent: Float!
         balance: Float!
         siteCount: Int!
+        totalSitesCost: Int!
         createdAt: String!
         updatedAt: String!
         count: Int!
@@ -69,6 +70,14 @@ const Query = {
         },
         siteCount: (_, args, ctx) => {
             return _.sites.length;
+        },
+        totalSitesCost: async (_, args, ctx) => {            
+            let user = await User.populate(_, "sites");            
+            return user.toObject().sites.reduce((first, second) => {
+                let result = first + second.cost;
+                console.log(result);
+                return result;
+            }, 0);            
         }
     },
 };

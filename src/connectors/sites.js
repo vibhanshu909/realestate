@@ -29,6 +29,11 @@ const typeDefs = `
         manager: String!
         createdAt: String!
     }
+
+    input SiteUpdateInput {
+        name: String!
+        location: String!        
+    }
     
     type SiteEntry {
         id: ID!
@@ -150,7 +155,7 @@ const RootQuery = {
 // Mutations allowed in graphql
 const MutationSchema = `
     createSite(data: SiteInput!): Site
-    updateSite(id: String!, data: SiteInput!): Site
+    updateSite(id: String!, data: SiteUpdateInput!): Site
     deleteSites(ids: [String!]!): Status
     deleteSiteEntry(siteId: String!, ids: [String!]!): Status
     makeSiteEntry(
@@ -176,18 +181,20 @@ const RootMutation = {
         return Site.populate(site, { path: "manager" });
     }),
     updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
-        const oldSite = await Sites.find({ id });
-        if (oldSite.manager === data.manager) {
-            return Sites.update({ id, ...data });
-        }
-        const oldUser = await Users.find({ id: oldSite.manager });
-        oldUser.sites.pull(id);
-        const user = await Users.find({ id: data.manager });
-        let result = await Sites.update({ id, ...data });
-        user.sites.push(result);
-        oldUser.save();
-        user.save();
-        return result;
+        return Sites.update({id, ...data});
+        // const oldSite = await Sites.find({ id });
+        // console.log(data);
+        // if (oldSite.manager === data.manager) {
+        //     return Sites.update({ id, ...data });
+        // }
+        // const oldUser = await Users.find({ id: oldSite.manager });
+        // oldUser.sites.pull(id);
+        // const user = await Users.find({ id: data.manager });
+        // let result = await Sites.update({ id, ...data });
+        // user.sites.push(result);
+        // oldUser.save();
+        // user.save();
+        // return result;
     }),
     deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
         await Sites.remove(args);

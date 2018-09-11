@@ -37,7 +37,7 @@ const UserSchema = Schema({
     balance: {
         type: Number,
         default: 0
-    },
+    },    
     // account: {
     //     type: Schema.Types.ObjectId,
     //     ref: "Account",        
@@ -81,14 +81,14 @@ UserSchema.pre('save', async function (next) {
 UserSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
-UserSchema.methods.credit = async function (amount) {    
+UserSchema.methods.credit = async function (amount) {
     return this.update({ totalReceivedAmount: this.totalReceivedAmount + amount, balance: this.balance + amount });
 }
 
 UserSchema.methods.reEval = async function () {
-    const user = await User.populate(this, 'sites');    
+    const user = await User.populate(this, 'sites');
     let managerSpentAmount = 0;
-    user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);    
+    user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
     return this.update({ spent: managerSpentAmount, balance: this.totalReceivedAmount - managerSpentAmount });
 }
 
