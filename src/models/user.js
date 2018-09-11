@@ -27,7 +27,7 @@ const UserSchema = Schema({
     },
     totalReceivedAmount: {
         type: Number,
-        default: 0,        
+        default: 0,
     },
     spent: {
         type: Number,
@@ -70,9 +70,9 @@ UserSchema.pre('save', function (next) {
     }
 });
 
-UserSchema.pre('save',async function (next) {
+UserSchema.pre('save', async function (next) {
     if (this.isNew) {
-        this.balance = this.totalReceivedAmount;        
+        this.balance = this.totalReceivedAmount;
     }
     return next();
 });
@@ -81,16 +81,14 @@ UserSchema.pre('save',async function (next) {
 UserSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
-UserSchema.methods.credit = async function (amount) {
+UserSchema.methods.credit = async function (amount) {    
     return this.update({ totalReceivedAmount: this.totalReceivedAmount + amount, balance: this.balance + amount });
 }
 
-UserSchema.methods.reEval = async function(){
-    console.log("User reEval...");
-    const user = await User.populate(this, 'sites');
+UserSchema.methods.reEval = async function () {
+    const user = await User.populate(this, 'sites');    
     let managerSpentAmount = 0;
-    user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
-    console.log("Done...", managerSpentAmount);
+    user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);    
     return this.update({ spent: managerSpentAmount, balance: this.totalReceivedAmount - managerSpentAmount });
 }
 

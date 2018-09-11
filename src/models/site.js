@@ -40,7 +40,7 @@ SiteSchema.methods.reEval = async function(){
     site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
     this.update({managerSpentAmount});
 }
-
+// save
 SiteSchema.pre('save', async function (doc) {
     let total = 0;
     const site = await Site.populate(this, 'entries');
@@ -50,6 +50,19 @@ SiteSchema.pre('save', async function (doc) {
 });
 
 SiteSchema.post('save', async function () {
+    return (await Users.find({ id: this.manager })).reEval();    
+});
+
+// update
+SiteSchema.pre('update', async function (doc) {
+    let total = 0;
+    const site = await Site.populate(this, 'entries');
+    const { entries } = site.toObject();
+    entries.forEach(e => total += e.total);
+    this.cost = total;
+});
+
+SiteSchema.post('update', async function () {
     return (await Users.find({ id: this.manager })).reEval();    
 });
 
