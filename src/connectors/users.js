@@ -100,8 +100,9 @@ const RootMutation = {
     updateUser: isManager.createResolver((_, { id, data }) => Users.update({ id, ...data })),
     deleteUser: isAdmin.createResolver((_, args) => Users.remove(args)),
     login: (_, { data }) => Users.login(data),
-    credit: isAdmin.createResolver((_, args) => {
-
+    credit: isAdmin.createResolver(async (_, { id, amount }) => {
+        let user = await (await Users.find({ id })).credit(amount);        
+        return { status: true };
     })
 }
 const Mutation = {
