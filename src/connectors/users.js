@@ -30,16 +30,25 @@ const typeDefs = `
     type User {
         id: ID!
         username: String!
-        password: String!        
+        password: String!
+        sites: [Site!]!
+        siteCount: Int!
+        totalSitesCost: Int!
         totalReceivedAmount: Float!
         spent: Float!
         balance: Float!
-        siteCount: Int!
-        totalSitesCost: Int!
+        history: [History]!
         createdAt: String!
         updatedAt: String!
         count: Int!
     }
+
+    type History {
+        amount: Int!
+        createdAt: String!
+        updatedAt: String!
+    }
+
     input UserInput {
         username: String!
         password: String!
@@ -59,28 +68,10 @@ const typeDefs = `
 const QuerySchema = `
     users(limit: Int, skip: Int = 0): [User]
     user(id: String!): User
+    userCreditHistory(id: String!, limit: Int, skip: Int = 0): User!
 `;
 
 // Query resolvers
-const Query = {
-    User: {
-        count: (_, args, ctx) => {
-            // console.log("count....", ctx.count);
-            return ctx.data.count;
-        },
-        siteCount: (_, args, ctx) => {
-            return _.sites.length;
-        },
-        totalSitesCost: async (_, args, ctx) => {            
-            let user = await User.populate(_, "sites");            
-            return user.toObject().sites.reduce((first, second) => {
-                let result = first + second.cost;
-                console.log(result);
-                return result;
-            }, 0);            
-        }
-    },
-};
 
 const RootQuery = {
     users: isAdmin.createResolver((_, args, ctx) => {
@@ -89,9 +80,45 @@ const RootQuery = {
         };
         return Users.all({ ...args, query: { username: { $ne: "admin" } } })
     }),
+    userCreditHistory: isManager.createResolver(async (_, args, ctx) => {
+        const {id, skip, limit} = args;
+        const user = await Users.find(args);
+        ctx.data = {
+            count: user.history.length,
+        };
+        return Users.find(args).select({ 'history': { '$slice': [skip,limit] } });
+        // return user.select({ 'history': { '$slice': [skip,limit] } })
+        // return user.history.find({}, {rest});
+    }),
     user: isManager.createResolver((_, args, ctx) => {
         return Users.find(args);
     }),
+};
+
+const TypeResolvers = {
+    User: {
+        count: (_, args, ctx) => {
+            // console.log("count....", ctx.count);
+            return ctx.data.count;
+        },
+        // history: async (_, args, ctx) => {
+        //     // console.log("count....", ctx.count);
+        //     return _.toObject().history;
+        //     // return { amount: 0 };
+        // },
+        sites: async (_, args, ctx) => {
+            return (await User.populate(_, 'sites')).sites;
+        },
+        siteCount: (_, args, ctx) => {
+            return _.sites.length;
+        },
+        totalSitesCost: async (_, args, ctx) => {
+            let user = await User.populate(_, "sites");
+            return user.toObject().sites.reduce((first, second) => {
+                return first + second.cost;
+            }, 0);
+        }        
+    },
 };
 
 // Mutations allowed in graphql
@@ -110,17 +137,14 @@ const RootMutation = {
     deleteUser: isAdmin.createResolver((_, args) => Users.remove(args)),
     login: (_, { data }) => Users.login(data),
     credit: isAdmin.createResolver(async (_, { id, amount }) => {
-        let user = await (await Users.find({ id })).credit(amount);        
+        let user = await (await Users.find({ id })).credit(amount);
         return { status: true };
     })
 }
-const Mutation = {
-
-};
 // const SchemaDirectives = {
 //     auth: AuthDirective,
 //     authorized: AuthDirective,
 //     authenticated: AuthDirective,
 // };
 
-export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, Query, Mutation };
+export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, TypeResolvers };

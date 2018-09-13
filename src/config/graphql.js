@@ -40,10 +40,8 @@ export default function(app){
                 Sites.RootMutation,
             ),
         },
-        Users.Query,
-        Sites.Query,
-        Users.Mutation,
-        Sites.Mutation,
+        Users.TypeResolvers,
+        Sites.TypeResolvers,
     );
 
     // Put together a schema
@@ -73,8 +71,9 @@ export default function(app){
         else{
             req.user = null;
         }
-        // var waitTill = new Date(new Date().getTime() + 2 * 1000);
-        // while(waitTill > new Date()){}
+        var waitTill = new Date(new Date().getTime() + 2 * 1000);
+        while(waitTill > new Date()){}
+        
         return {
             schema ,
             context
