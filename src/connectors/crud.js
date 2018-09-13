@@ -10,7 +10,7 @@ export default function(model){
         },
 
         create: function(args) {
-            return new model(args).save();
+            return model.create(args);
         },
 
         update: async function(args) {

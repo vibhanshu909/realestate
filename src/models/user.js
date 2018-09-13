@@ -37,7 +37,14 @@ const UserSchema = Schema({
     balance: {
         type: Number,
         default: 0
-    },    
+    },
+    history: [{
+        amount: Number,
+        createdAt: {
+            type: Date,
+            default: new Date()
+        }
+    }],
     // account: {
     //     type: Schema.Types.ObjectId,
     //     ref: "Account",        
@@ -73,6 +80,7 @@ UserSchema.pre('save', function (next) {
 UserSchema.pre('save', async function (next) {
     if (this.isNew) {
         this.balance = this.totalReceivedAmount;
+        this.history.push({ amount: this.totalReceivedAmount });
     }
     return next();
 });
@@ -82,7 +90,21 @@ UserSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
 UserSchema.methods.credit = async function (amount) {
-    return this.update({ totalReceivedAmount: this.totalReceivedAmount + amount, balance: this.balance + amount });
+    if (amount === 0) {
+        return this;
+    }
+    return this.update({
+        totalReceivedAmount: this.totalReceivedAmount + amount,
+        balance: this.balance + amount,
+        $push: {
+            history: {
+                $each: [{
+                    amount
+                }],
+                $position: 0
+            },
+        }
+    });
 }
 
 UserSchema.methods.reEval = async function () {

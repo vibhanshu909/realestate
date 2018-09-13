@@ -75,8 +75,8 @@ SiteSchema.post('remove', async function (doc) {
 });
 
 const repeater = {
-    quantity: { type: Number, required: true, min: 0 },
-    cost: { type: Number, required: true, min: 0.00 },
+    quantity: { type: Number, default: 0, min: 0 },
+    cost: { type: Number, default: 0, min: 0.00 },
     paid: { type: Boolean, default: false }
 }
 
@@ -90,8 +90,8 @@ const SiteEntrySchema = Schema({
     saria: repeater,
     dust: repeater,
     other: {
-        quantity: { type: String, required: true },
-        cost: { type: Number, required: true, min: 0.00 },
+        quantity: { type: String, default: "N/A" },
+        cost: { type: Number, default: 0, min: 0.00 },
         paid: { type: Boolean, default: false }
     },
     total: { type: Number, default: 0, min: 0.00 },

@@ -100,13 +100,13 @@ const QuerySchema = `
 `;
 
 // Query resolvers
-const Query = {
+const TypeResolvers = {    
     Site: {
         count: (_, args, ctx) => {
-            return ctx.data.count;
+            return (ctx.data && ctx.data.count) || _.entries.length;
         },
         entryCount: (_, args, ctx) => {
-            return _.entries.length 
+            return _.entries.length
         }
     },
     SiteEntry: {
@@ -142,8 +142,7 @@ const RootQuery = {
         }
     }),
     siteEntries: isManager.createResolver(async (_, { id, limit, skip }, ctx) => {
-        const site = await Sites.find({ id });
-        console.log("length....", site.entries.length);
+        const site = await Sites.find({ id });        
         ctx.data = { count: site.entries.length };
         return Sites.find({ id }).populate('manager').populate({ path: 'entries', options: { limit, skip, sort: "-createdAt" } });
     }),
@@ -181,7 +180,7 @@ const RootMutation = {
         return Site.populate(site, { path: "manager" });
     }),
     updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
-        return Sites.update({id, ...data});
+        return Sites.update({ id, ...data });
         // const oldSite = await Sites.find({ id });
         // console.log(data);
         // if (oldSite.manager === data.manager) {
@@ -233,13 +232,10 @@ const RootMutation = {
     }),
 }
 
-const Mutation = {
-
-};
 // const SchemaDirectives = {
 //     auth: AuthDirective,
 //     authorized: AuthDirective,
 //     authenticated: AuthDirective,
 // };
 
-export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, Query, Mutation };
+export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, TypeResolvers };

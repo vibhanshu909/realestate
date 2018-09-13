@@ -8,6 +8,7 @@
         "start": "babel-watch src/index.js",
         "start-pro": "npm run build && pm2 restart dist/server.js",
         "seed": "babel-watch ./src/models/seeds/user.js",
+        "fake-seed": "babel-watch ./src/models/seeds/fake.js",
         "test": "babel-watch ./src/models/test.js"
     },
     "keywords": [],
