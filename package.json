@@ -6,7 +6,7 @@
     "scripts": {
         "build": "rimraf ./dist && babel -d ./dist ./src",
         "start": "babel-watch src/index.js",
-        "start-pro": "PORT=8000 npm run build && pm2 start dist/server.js --watch",
+        "start-pro": "npm run build && pm2 start dist/server_test.js --watch",
         "seed": "babel-watch ./src/models/seeds/user.js",
         "fake-seed": "babel-watch ./src/models/seeds/fake.js",
         "test": "babel-watch ./src/models/test.js"
