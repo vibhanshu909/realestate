@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/user';
+import User, { ROLES } from '../models/user';
 import config from '../config/main';
 import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager } from '../config/permissions';
@@ -78,7 +78,7 @@ const RootQuery = {
         ctx.data = {
             count: User.count({}),
         };
-        return Users.all({ ...args, query: { username: { $ne: "admin" } } })
+        return Users.all({ ...args, query: { role: { $ne: ROLES.ADMIN } } })
     }),
     userCreditHistory: isManager.createResolver(async (_, args, ctx) => {
         const {id, skip, limit} = args;
