@@ -6,8 +6,8 @@ async function seed(){
     console.log("Seeding...");
     try {
         let u = new User({
-            username: "admin",
-            password: "admin@123",
+            username: "KKAssociates",
+            password: "k9936535955ka",
             role: ROLES.ADMIN,
         });
         u = await u.save();
