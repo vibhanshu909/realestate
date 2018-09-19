@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/user';
+import User, { ROLES } from '../models/user';
 import config from '../config/main';
 import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager } from '../config/permissions';
@@ -78,7 +78,7 @@ const RootQuery = {
         ctx.data = {
             count: User.count({}),
         };
-        return Users.all({ ...args, query: { username: { $ne: "admin" } } })
+        return Users.all({ ...args, query: { role: { $ne: ROLES.ADMIN } } })
     }),
     userCreditHistory: isManager.createResolver(async (_, args, ctx) => {
         const {id, skip, limit} = args;
@@ -132,7 +132,13 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-    createUser: isAdmin.createResolver((_, { data }) => Users.create(data)),
+    createUser: isAdmin.createResolver(async (_, { data }, ctx) => {
+        const result = await Users.create(data);
+        ctx.data = {
+            count: await User.count({}),
+        };
+        return result;
+    }),
     updateUser: isManager.createResolver((_, { id, data }) => Users.update({ id, ...data })),
     deleteUser: isAdmin.createResolver((_, args) => Users.remove(args)),
     login: (_, { data }) => Users.login(data),

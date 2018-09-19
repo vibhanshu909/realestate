@@ -7,7 +7,7 @@ const config = {
 
 // mongoose.Promise = global.Promise;
 // Connecting to the database
-db.connect(config.database)
+db.connect(config.database, { useNewUrlParser: true })
 .then(() => {
     console.log("Successfully connected to the database");
 }).catch(err => {
