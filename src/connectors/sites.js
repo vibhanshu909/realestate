@@ -180,7 +180,8 @@ const RootMutation = {
         return Site.populate(site, { path: "manager" });
     }),
     updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
-        return Sites.update({ id, ...data });
+        // return (await .populate('manager');
+        return Site.populate(await Sites.update({ id, ...data }), { path: "manager" });
         // const oldSite = await Sites.find({ id });
         // console.log(data);
         // if (oldSite.manager === data.manager) {
