@@ -10,7 +10,8 @@ const typeDefs = `
         name: String!
         location: String!
         price: Float!
-        soldTo: String!
+        buyer: String!
+        buyerNumber: Float!
         totalReceivedAmount: Float!        
         balance: Float!
         nextDueDate: String!
@@ -29,7 +30,8 @@ const typeDefs = `
         name: String!
         location: String!        
         price: Float!
-        soldTo: String!
+        buyer: String!
+        buyerNumber: Float!
         totalReceivedAmount: Float!
         nextDueDate: String!
     }
@@ -37,7 +39,8 @@ const typeDefs = `
     input PropertyUpdateInput {
         name: String!
         location: String!
-        soldTo: String!
+        buyer: String!
+        buyerNumber: Float!
         nextDueDate: String!
     }
 `;

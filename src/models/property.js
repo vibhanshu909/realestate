@@ -18,9 +18,13 @@ const PropertySchema = Schema({
         required: true,
         min: 0
     },
-    soldTo: {
+    buyer: {
         type: String,
         required: true
+    },
+    buyerNumber: {
+        type: Number,
+        required: true        
     },
     totalReceivedAmount: {
         type: Number,
