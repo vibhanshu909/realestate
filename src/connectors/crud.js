@@ -8,6 +8,10 @@ export default function(model){
         find: function({id}) {
             return model.findById(id);
         },
+        
+        first: function() {
+            return model.findOne();
+        },
 
         create: function(args) {
             return model.create(args);

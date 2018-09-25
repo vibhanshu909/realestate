@@ -8,6 +8,7 @@ import User from '../models/user';
 
 import Users from '../connectors/users';
 import Sites from '../connectors/sites';
+import Properties from '../connectors/properties';
 
 export default function(app){
     const typeDefs = `        
@@ -17,31 +18,37 @@ export default function(app){
         
         ${Users.typeDefs}
         ${Sites.typeDefs}
+        ${Properties.typeDefs}
 
         # the schema allows the following query:
         type Query {
             ${Users.QuerySchema}
             ${Sites.QuerySchema}
+            ${Properties.QuerySchema}
         }
 
         # this schema allows the following mutation:
         type Mutation {
             ${Users.MutationSchema}
             ${Sites.MutationSchema}
+            ${Properties.MutationSchema}
         }
     `;
     const resolvers = Object.assign({}, {
             Query: Object.assign({},
                 Users.RootQuery,
                 Sites.RootQuery,
+                Properties.RootQuery,
             ),
             Mutation: Object.assign({},
                 Users.RootMutation,
                 Sites.RootMutation,
+                Properties.RootMutation,
             ),
         },
         Users.TypeResolvers,
         Sites.TypeResolvers,
+        Properties.TypeResolvers,
     );
 
     // Put together a schema
