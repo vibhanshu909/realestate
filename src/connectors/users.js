@@ -45,8 +45,7 @@ const typeDefs = `
 
     type History {
         amount: Int!
-        createdAt: String!
-        updatedAt: String!
+        createdAt: String!        
     }
 
     input UserInput {

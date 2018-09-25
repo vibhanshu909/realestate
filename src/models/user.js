@@ -42,7 +42,7 @@ const UserSchema = Schema({
         amount: Number,
         createdAt: {
             type: Date,
-            default: new Date()
+            default: new Date(new Date().toDateString())
         }
     }],
     // account: {
