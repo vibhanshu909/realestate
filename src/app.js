@@ -41,7 +41,7 @@ const options = {
 app.use('/', express.static(staticFolder, options));
 app.use('/*', express.static(staticFolder, options));
 
-cron.schedule("* * * * *", async function () {
+cron.schedule("* 6 * * *", async function () {
   console.log("running a task every minute");
   let { Properties } = await import("./connectors/properties");
   let result = await Properties.all({
