@@ -78,8 +78,8 @@ export default function(app){
         else{
             req.user = null;
         }
-        // var waitTill = new Date(new Date().getTime() + 2 * 1000);
-        // while(waitTill > new Date()){}
+        var waitTill = new Date(new Date().getTime() + 2 * 1000);
+        while(waitTill > new Date()){}
         
         return {
             schema ,

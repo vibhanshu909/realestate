@@ -61,15 +61,17 @@ cron.schedule("* 6 * * *", async function () {
   const userid = "9984432113";
   const password = "@Iamvsquare909";
   const apiKey = "vsquakm8ZxrJGnPeQbHvMq9o";
+  const to = "8574684716";
+  let adminMsg = "";
   result.forEach(e => {
-    const to = "8574684716";
     const msg = `
-    Payment is due from ${e.buyer} of ${e.name}.
-    Price: ${e.price}
-    Total Received Amount: ${e.totalReceivedAmount}
-    Balance: ${e.price - e.totalReceivedAmount}
+    Payment is due from ${e.buyer}.
+    Property name: ${e.name}.
+    Price: (₹) ${e.price}
+    Total Received Amount: (₹) ${e.totalReceivedAmount}
+    Balance: (₹) ${e.price - e.totalReceivedAmount}
     `;
-  
+    adminMsg += msg;
     request(`https://smsapi.engineeringtgr.com/send/?Mobile=${userid}&Password=${password}&Message=${msg}&To=${to}&Key=${apiKey}`,
       function (error, response, body) {
         if (!error && response.statusCode == 200) {

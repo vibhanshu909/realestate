@@ -8,7 +8,7 @@ export const Users = crud(User);
 
 Users.login = async (params) => {
     console.log(params);
-    const { username, password } = params;
+    const { username, password } = params;    
     const user = await User.findOne({ username });
     if (!user) {
         throw new Error("Can't find user");
@@ -16,7 +16,7 @@ Users.login = async (params) => {
     const isMatch = await user.comparePassword(password);
     if (isMatch) {
         const { _id } = user;
-        const token = jwt.sign({ id: _id, role: user.role }, config.secret, {
+        const token = jwt.sign({ id: _id, username: user.username, role: user.role }, config.secret, {
             expiresIn: "1y"
         });
         return { token };
@@ -31,6 +31,7 @@ const typeDefs = `
         id: ID!
         username: String!
         password: String!
+        contact: Float!
         sites: [Site!]!
         siteCount: Int!
         totalSitesCost: Int!
@@ -58,6 +59,11 @@ const typeDefs = `
         password: String!     
     }
 
+    input UserPasswordInput {
+        currentPassword: String!
+        newPassword: String!        
+    }
+
     type Login{
         token: String!
     }
@@ -80,12 +86,12 @@ const RootQuery = {
         return Users.all({ ...args, query: { role: { $ne: ROLES.ADMIN } } })
     }),
     userCreditHistory: isManager.createResolver(async (_, args, ctx) => {
-        const {id, skip, limit} = args;
+        const { id, skip, limit } = args;
         const user = await Users.find(args);
         ctx.data = {
             count: user.history.length,
         };
-        return Users.find(args).select({ 'history': { '$slice': [skip,limit] } });
+        return Users.find(args).select({ 'history': { '$slice': [skip, limit] } });
         // return user.select({ 'history': { '$slice': [skip,limit] } })
         // return user.history.find({}, {rest});
     }),
@@ -112,11 +118,11 @@ const TypeResolvers = {
             return _.sites.length;
         },
         totalSitesCost: async (_, args, ctx) => {
-            let user = await User.populate(_, "sites");
+            const user = await User.populate(_, "sites");
             return user.toObject().sites.reduce((first, second) => {
                 return first + second.cost;
             }, 0);
-        }        
+        }
     },
 };
 
@@ -127,6 +133,8 @@ const MutationSchema = `
     deleteUser(id: String!): User
     login(data: LoginInput!): Login
     credit(id: String!, amount: Float!): Status
+    updateUserContact(id: String!, contact: Float!): User
+    updateUserPassword(id: String!, data: UserPasswordInput!): Status
 `;
 
 // Mutation resolvers
@@ -142,7 +150,16 @@ const RootMutation = {
     deleteUser: isAdmin.createResolver((_, args) => Users.remove(args)),
     login: (_, { data }) => Users.login(data),
     credit: isAdmin.createResolver(async (_, { id, amount }) => {
-        let user = await (await Users.find({ id })).credit(amount);
+        const user = await (await Users.find({ id })).credit(amount);
+        return { status: true };
+    }),
+    updateUserContact: isAdmin.createResolver(async (_, { id, contact }) => {
+        console.log(contact, typeof(contact));
+        await User.findByIdAndUpdate({ _id: id }, { contact });
+        return Users.find({ id });
+    }),
+    updateUserPassword: isAdmin.createResolver(async (_, { id, data }) => {
+        const user = await (await Users.find({ id })).changePassword(data);
         return { status: true };
     })
 }

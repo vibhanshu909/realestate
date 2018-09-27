@@ -19,6 +19,11 @@ const UserSchema = Schema({
         type: String,
         required: true,
     },
+    contact: {
+        type: Number,
+        default: 0,        
+        max: 9999999999,        
+    },
     role: {
         type: String,
         required: true,
@@ -59,25 +64,28 @@ const UserSchema = Schema({
         timestamps: true
     });
 
-UserSchema.pre('save', function (next) {
-    const user = this;
+export async function getHash(str){
+    try{        
+        const result = await bcrypt.hash(str, await bcrypt.genSalt(10));
+        return result;
+    }
+    catch(err){
+        throw err;
+    }
+}
+
+UserSchema.pre('save', async function (next) {
+    const user = this;    
     if (user.isModified("password") || user.isNew) {
-        return bcrypt.genSalt(10, function (err, salt) {
-            if (err) {
-                return next(err);
-            }
-            bcrypt.hash(user.password, salt, function (err, hash) {
-                user.password = hash;
-                return next();
-            });
-        });
+        user.password = await getHash(user.password);
+        next();        
     }
     else {
         return next();
     }
 });
 
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function (next) {    
     if (this.isNew) {
         this.balance = this.totalReceivedAmount;
         this.history.push({ amount: this.totalReceivedAmount });
@@ -89,6 +97,19 @@ UserSchema.pre('save', async function (next) {
 UserSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
+
+UserSchema.methods.changePassword = async function ({currentPassword, newPassword}) {
+    if(!currentPassword || !newPassword)throw new Error("Empty password");
+    const cmp = await bcrypt.compare(currentPassword, this.password);
+    console.log(cmp);
+    if(cmp){
+        return this.update({
+            password: await getHash(newPassword)
+        });
+    }
+    throw new Error("Password does not match");    
+};
+
 UserSchema.methods.credit = async function (amount) {
     if (amount === 0) {
         return this;

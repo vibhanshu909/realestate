@@ -1,22 +1,12 @@
 import mongoose from '../config/main'
 import { Sites } from '../connectors/sites';
 import { Properties } from '../connectors/properties';
+import {getHash} from './user';
+import bcrypt from 'bcrypt';
 
 (async function () {
-  console.log("function called...")
-  // let { Properties } = await import("../connectors/properties");
-  let result = await Properties.all({
-    query: {
-      nextDueDate: new Date((function () {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth() + 1;
-        const d = now.getDate();
-        return y + "-" +
-          (m < 10 ? "0" + m : m) + "-" +
-          (d < 10 ? "0" + d : d);
-      })())
-    }
-  });
-  console.log(result);
+  console.log("function called...");
+  let h=await getHash("vibhanshu");
+  console.log(h);
+  console.log(await bcrypt.compare("", h))
 })()
