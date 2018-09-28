@@ -15,6 +15,7 @@ const typeDefs = `
         totalReceivedAmount: Float!        
         balance: Float!
         nextDueDate: String!
+        note: String
         history: [PropertyCreditHistory]!
         createdAt: String!
         updatedAt: String!
@@ -34,6 +35,7 @@ const typeDefs = `
         buyerNumber: Float!
         totalReceivedAmount: Float!
         nextDueDate: String!
+        note: String
     }
 
     input PropertyUpdateInput {
@@ -42,6 +44,7 @@ const typeDefs = `
         buyer: String!
         buyerNumber: Float!
         nextDueDate: String!
+        note: String
     }
 `;
 
@@ -95,7 +98,7 @@ const MutationSchema = `
 // Mutation resolvers
 const RootMutation = {
     createProperty: isAdmin.createResolver(async (_, { data }, ctx) => {
-        const result = await Properties.create(data);
+        const result = await Properties.create({...data, owner: ctx.user});
         ctx.data = {
             count: await Property.count({}),
         };

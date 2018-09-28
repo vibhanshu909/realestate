@@ -1,12 +1,9 @@
-import mongoose from '../config/main'
-import { Sites } from '../connectors/sites';
-import { Properties } from '../connectors/properties';
-import {getHash} from './user';
-import bcrypt from 'bcrypt';
+import propertyTask, { way2sms, awsSns } from '../tasks/property';
 
 (async function () {
   console.log("function called...");
-  let h=await getHash("vibhanshu");
-  console.log(h);
-  console.log(await bcrypt.compare("", h))
+  // propertyTask();
+  // 7376608584
+  awsSns({to: 7376608584, msg: "Payment due from visit: https://vsquarevision.ml"});
+  // way2sms({ to: "8765034689", msg: "hello" })
 })()

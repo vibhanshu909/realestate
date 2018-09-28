@@ -14,11 +14,13 @@ async function seed(){
             labour: data,
             eit: data,
             morang: data,
+            baalu: data,
             githi: data,
             cement: data,
             saria: data,
             dust: data,
-            other: data
+            other: data,
+            other2: data,
         }));
     }
     await s.save();

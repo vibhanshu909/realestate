@@ -19,12 +19,10 @@ const PropertySchema = Schema({
         min: 0
     },
     buyer: {
-        type: String,
-        required: true
+        type: String,        
     },
     buyerNumber: {
-        type: Number,
-        required: true        
+        type: Number,                
     },
     totalReceivedAmount: {
         type: Number,
@@ -35,9 +33,9 @@ const PropertySchema = Schema({
         default: 0
     },
     nextDueDate: {
-        type: Date,
-        required: true
+        type: Date,        
     },
+    note: String,
     history: [{
         amount: Number,
         createdAt: {
@@ -45,6 +43,10 @@ const PropertySchema = Schema({
             default: new Date(new Date().toDateString())
         }
     }],
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }
 },
     {
         timestamps: true

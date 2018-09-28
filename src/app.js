@@ -1,10 +1,9 @@
 import express from 'express';
 import cron from 'node-cron';
-import request from 'request';
 import logger from 'morgan';
 import cors from 'cors';
 import graphqlConfig from './config/graphql';
-import { getDefaultSettings } from 'http2';
+import propertyTask from './tasks/property';
 
 // Initialize the app
 const app = express();
@@ -43,42 +42,6 @@ app.use('/*', express.static(staticFolder, options));
 
 cron.schedule("* 6 * * *", async function () {
   console.log("running a task every minute");
-  let { Properties } = await import("./connectors/properties");
-  let result = await Properties.all({
-    query: {
-      nextDueDate: new Date((function () {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth() + 1;
-        const d = now.getDate();
-        return y + "-" +
-          (m < 10 ? "0" + m : m) + "-" +
-          (d < 10 ? "0" + d : d);
-      })())
-    }
-  });
-  console.log(result);
-  const userid = "9984432113";
-  const password = "@Iamvsquare909";
-  const apiKey = "vsquakm8ZxrJGnPeQbHvMq9o";
-  const to = "8574684716";
-  let adminMsg = "";
-  result.forEach(e => {
-    const msg = `
-    Payment is due from ${e.buyer}.
-    Property name: ${e.name}.
-    Price: (₹) ${e.price}
-    Total Received Amount: (₹) ${e.totalReceivedAmount}
-    Balance: (₹) ${e.price - e.totalReceivedAmount}
-    `;
-    adminMsg += msg;
-    request(`https://smsapi.engineeringtgr.com/send/?Mobile=${userid}&Password=${password}&Message=${msg}&To=${to}&Key=${apiKey}`,
-      function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-          console.log(body) // Print the google web page.
-        }
-      }
-    );
-  })
+  propertyTask();
 });
 export default app;

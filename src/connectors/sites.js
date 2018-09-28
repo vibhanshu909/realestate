@@ -41,11 +41,13 @@ const typeDefs = `
         labour: SiteEntryOutput
         eit: SiteEntryOutput
         morang: SiteEntryOutput
+        baalu: SiteEntryOutput
         githi: SiteEntryOutput
         cement: SiteEntryOutput
         saria: SiteEntryOutput
         dust: SiteEntryOutput
         other: SiteEntryOtherOutput
+        other2: SiteEntryOtherOutput
         createdAt: String!
         updatedAt: String!
         managerSpentAmount: Float!
@@ -70,11 +72,13 @@ const typeDefs = `
         labour: SiteEntryFieldInput,
         eit: SiteEntryFieldInput,
         morang: SiteEntryFieldInput,
+        baalu: SiteEntryFieldInput,
         githi: SiteEntryFieldInput,
         cement: SiteEntryFieldInput,
         saria: SiteEntryFieldInput,
         dust: SiteEntryFieldInput,
         other: SiteEntryFieldOtherInput,
+        other2: SiteEntryFieldOtherInput,
         createdAt: String!
     }
     

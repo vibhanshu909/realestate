@@ -85,11 +85,17 @@ const SiteEntrySchema = Schema({
     labour: repeater,
     eit: repeater,
     morang: repeater,
+    baalu: repeater,
     githi: repeater,
     cement: repeater,
     saria: repeater,
     dust: repeater,
     other: {
+        quantity: { type: String, default: "N/A" },
+        cost: { type: Number, default: 0, min: 0.00 },
+        paid: { type: Boolean, default: false }
+    },
+    other2: {
         quantity: { type: String, default: "N/A" },
         cost: { type: Number, default: 0, min: 0.00 },
         paid: { type: Boolean, default: false }
