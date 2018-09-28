@@ -117,8 +117,8 @@ export default async function () {
         admin.msg += `
         ${msg}
         `;
-        way2sms({ to, msg });
+        awsSns({ to, msg });
     };
-    way2sms(admin);
+    awsSns(admin);
     return true;
 }
