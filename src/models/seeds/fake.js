@@ -7,7 +7,7 @@ import faker from 'faker';
 async function seed() {
     console.log("Seeding...");
     try {
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 1000; i++) {
             await Property.create({
                 name: faker.name.findName(),
                 location: faker.address.city(),
