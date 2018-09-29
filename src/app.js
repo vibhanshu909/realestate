@@ -29,16 +29,10 @@ app.use(cors(corsOptions));
 graphqlConfig(app);
 
 const staticFolder = "build/";
-const options = {
-  maxage: '1h',
-  index: "index.html",
-  // setHeaders: function (res, path, stat) {
-  //   res.set('Content-Encoding', 'gzip');
-  // }
-};
 
-app.use('/', express.static(staticFolder, options));
-app.use('/*', express.static(staticFolder, options));
+app.disable('x-powered-by');
+app.use(express.static(staticFolder));
+app.use('*', express.static(staticFolder));
 
 cron.schedule("* 6 * * *", async function () {
   console.log("running a task every minute");
