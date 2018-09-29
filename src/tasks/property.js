@@ -3,6 +3,9 @@ import Property from '../models/property';
 import unirest from 'unirest';
 import AWS from 'aws-sdk';
 
+export function stripString(str){
+    return str.replace(/\s\s+/g, ' ');
+}
 export function fastSend(args) {
     const { to, msg } = args;
     const req = unirest("POST", "https://www.fast2sms.com/dev/bulk");
@@ -60,7 +63,7 @@ export function way2sms(args) {
 export function awsSns(args) {
     console.log(args);
     const { to, msg } = args;
-    AWS.config.update({region: 'ap-southeast-1'});
+    AWS.config.update({ region: 'ap-southeast-1' });
     const sns = new AWS.SNS();
 
     const params = {
@@ -68,9 +71,13 @@ export function awsSns(args) {
         PhoneNumber: "+91" + to,
     };
     sns.setSMSAttributes({
-        MonthlySpendLimit: 3,        
-        DefaultSenderID: "codmtr",
-        DefaultSMSType: "Transactional"
+        attributes: {
+            // request aws to first increase your sns limit use any other value the 1
+            'MonthlySpendLimit': '1',
+
+            'DefaultSenderID': 'CODMTR',
+            'DefaultSMSType': 'Transactional'
+        }
     }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
         else console.log(data);           // successful response
@@ -95,30 +102,37 @@ export default async function () {
         }
     });
     console.log("Due Documents: ", result.length);
-    let admin = {
-        to: "",
-        msg: ""
-    }
     for (const e of result) {
-        // console.log(e);
-        if (!admin.to) {
-            const owner = (await Property.populate(e, "owner")).toObject().owner;
-            admin.to = owner.contact;
-        }
-        const to = e.buyerNumber;
-        const msg = `
-        Payment is due from ${e.buyer}.
+        const admin = {
+            to: "",
+            msg: "",
+            name: ""
+        };
+        const owner = (await Property.populate(e, "owner")).toObject().owner;
+        admin.to = owner.contact;
+        admin.name = owner.username;
+        const msg = stripString(`
+        Your payment is due for-
         Property name: ${e.name}.
-        Price: ${e.price}
-        Total Received Amount: ${e.totalReceivedAmount}
-        Balance: ${e.price - e.totalReceivedAmount}
-        Note: ${e.note}
-        `;
-        admin.msg += `
-        ${msg}
-        `;
-        awsSns({ to, msg });
+        Price: Rs. ${e.price}
+        Owner: ${admin.name}
+        Owner's contact: ${admin.to}
+        Total Paid Amount: Rs. ${e.totalReceivedAmount}
+        Balance: Rs. ${e.price - e.totalReceivedAmount}
+        ${e.note.length ? "Note: " : ""}
+        `);
+        awsSns({ to: e.buyerNumber, msg });
+
+        admin.msg += stripString(`                
+        Property name: ${e.name}.
+        Price: Rs.${e.price}
+        Buyer's name: ${e.buyer}.
+        Buyer's contact: ${e.buyerNumber}
+        Total Received Amount: Rs. ${e.totalReceivedAmount}
+        Balance: Rs. ${e.price - e.totalReceivedAmount}
+        ${e.note.length ? "Note: " : ""}
+        `);
+        awsSns(admin);
     };
-    awsSns(admin);
     return true;
 }
