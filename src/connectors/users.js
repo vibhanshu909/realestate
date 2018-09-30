@@ -146,7 +146,7 @@ const RootMutation = {
         };
         return result;
     }),
-    updateUser: isManager.createResolver((_, { id, data }) => {
+    updateUser: isManager.createResolver(async (_, { id, data }) => {
         ctx.data = {
             count: await User.count({}),
         };
