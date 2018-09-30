@@ -119,7 +119,7 @@ export default async function () {
         Owner's contact: ${admin.to}
         Total Paid Amount: Rs. ${e.totalReceivedAmount}
         Balance: Rs. ${e.price - e.totalReceivedAmount}
-        ${e.note.length ? "Note: " : ""}
+        ${e.note.length ? `Note: ${e.note}` : ""}
         `);
         awsSns({ to: e.buyerNumber, msg });
 
@@ -130,7 +130,7 @@ export default async function () {
         Buyer's contact: ${e.buyerNumber}
         Total Received Amount: Rs. ${e.totalReceivedAmount}
         Balance: Rs. ${e.price - e.totalReceivedAmount}
-        ${e.note.length ? "Note: " : ""}
+        ${e.note.length ? `Note: ${e.note}` : ""}
         `);
         awsSns(admin);
     };

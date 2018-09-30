@@ -34,7 +34,7 @@ app.disable('x-powered-by');
 app.use(express.static(staticFolder));
 app.use('*', express.static(staticFolder));
 
-cron.schedule("* 6 * * *", async function () {
+cron.schedule("0 6 * * *", async function () {
   console.log("running a task every minute");
   propertyTask();
 });
