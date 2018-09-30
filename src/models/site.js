@@ -3,6 +3,12 @@ import { Users } from '../connectors/users';
 
 var Schema = mongoose.Schema;
 
+const totalRepeater = {
+    type: Number,
+    min: 0,
+    default: 0,
+};
+
 const SiteSchema = Schema({
     name: {
         type: String,
@@ -28,46 +34,74 @@ const SiteSchema = Schema({
         type: Number,
         min: 0,
         default: 0,
+    },
+    total: {
+        mistri: totalRepeater,
+        labour: totalRepeater,
+        eit: totalRepeater,
+        morang: totalRepeater,
+        baalu: totalRepeater,
+        githi: totalRepeater,
+        cement: totalRepeater,
+        saria: totalRepeater,
+        dust: totalRepeater,
+        other: totalRepeater,
+        other2: totalRepeater
     }
 },
     {
         timestamps: true
     });
 
-SiteSchema.methods.reEval = async function(){
+SiteSchema.methods.reEval = async function () {
     const site = await Site.populate(this, 'entries');
     let managerSpentAmount = 0;
     site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
-    this.update({managerSpentAmount});
+    this.update({ managerSpentAmount });
 }
-// save
-SiteSchema.pre('save', async function (doc) {
+async function totalHook(_) {
     let total = 0;
     const site = await Site.populate(this, 'entries');
     const { entries } = site.toObject();
-    entries.forEach(e => total += e.total);
+    const newTotal = {
+        mistri: 0,
+        labour: 0,
+        eit: 0,
+        morang: 0,
+        baalu: 0,
+        githi: 0,
+        cement: 0,
+        saria: 0,
+        dust: 0,
+        other: 0,
+        other2: 0,
+    };
+    entries.forEach(e => {
+        total += e.total;
+        Object.keys(e).map(x => {            
+            newTotal[x] += e[x].cost;
+        })
+    });
+    this.total = newTotal;
     this.cost = total;
-});
+}
+
+// save
+SiteSchema.pre('save', totalHook);
 
 SiteSchema.post('save', async function () {
-    return (await Users.find({ id: this.manager })).reEval();    
+    return (await Users.find({ id: this.manager })).reEval();
 });
 
 // update
-SiteSchema.pre('update', async function (doc) {
-    let total = 0;
-    const site = await Site.populate(this, 'entries');
-    const { entries } = site.toObject();
-    entries.forEach(e => total += e.total);
-    this.cost = total;
-});
+SiteSchema.pre('update', totalHook);
 
 SiteSchema.post('update', async function () {
-    return (await Users.find({ id: this.manager })).reEval();    
+    return (await Users.find({ id: this.manager })).reEval();
 });
 
 SiteSchema.post('remove', async function (doc) {
-    console.log("Site Removed...");    
+    console.log("Site Removed...");
     let user = await Users.find({ id: doc.manager });
     await user.reEval();
     user.sites.pull(doc.id);
@@ -114,8 +148,8 @@ SiteEntrySchema.pre('save', function (next) {
     let managerSpentAmount = 0;
     const { _id, createdAt, updatedAt, total: _, managerSpentAmount: __, _v, ...rest } = this.toObject();
     Object.values(rest).forEach(e => {
-        total += e.cost; 
-        managerSpentAmount += e.paid ? e.cost: 0;        
+        total += e.cost;
+        managerSpentAmount += e.paid ? e.cost : 0;
     });
     this.total = total;
     this.managerSpentAmount = managerSpentAmount;
@@ -131,8 +165,8 @@ SiteEntrySchema.pre('findOneAndUpdate', function (next) {
     const { $set, $setOnInsert, ...rest } = this._update;
     // console.log(rest);
     Object.values(rest).forEach(e => {
-        total += e.cost; 
-        managerSpentAmount += e.paid ? e.cost: 0;        
+        total += e.cost;
+        managerSpentAmount += e.paid ? e.cost : 0;
     });
     this._update.total = total;
     this._update.managerSpentAmount = managerSpentAmount;

@@ -146,7 +146,12 @@ const RootMutation = {
         };
         return result;
     }),
-    updateUser: isManager.createResolver((_, { id, data }) => Users.update({ id, ...data })),
+    updateUser: isManager.createResolver(async (_, { id, data }) => {
+        ctx.data = {
+            count: await User.count({}),
+        };
+        return Users.update({ id, ...data });
+    }),
     deleteUser: isAdmin.createResolver((_, args) => Users.remove(args)),
     login: (_, { data }) => Users.login(data),
     credit: isAdmin.createResolver(async (_, { id, amount }) => {

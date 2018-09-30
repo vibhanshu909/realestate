@@ -9,6 +9,19 @@ export const Sites = crud(Site);
 export const SiteEntries = crud(SiteEntry);
 
 const typeDefs = `
+    type Total {
+        mistri: Int!
+        labour: Int!
+        eit: Int!
+        morang: Int!
+        baalu: Int!
+        githi: Int!
+        cement: Int!
+        saria: Int!
+        dust: Int!
+        other: Int!
+        other2: Int!
+    }
     type Site {
         id: ID!
         name: String!
@@ -18,9 +31,10 @@ const typeDefs = `
         managerSpentAmount: Float!
         cost: Float!
         entries: [SiteEntry!]
+        total: Total!
+        count: Int!        
         createdAt: String!
         updatedAt: String!
-        count: Int!
     }
 
     input SiteInput {
