@@ -60,7 +60,7 @@ const typeDefs = `
     }
 
     input UserPasswordInput {
-        currentPassword: String!
+        currentPassword: String
         newPassword: String!        
     }
 
@@ -163,8 +163,15 @@ const RootMutation = {
         await User.findByIdAndUpdate({ _id: id }, { contact });
         return Users.find({ id });
     }),
-    updateUserPassword: isAdmin.createResolver(async (_, { id, data }) => {
-        const user = await (await Users.find({ id })).changePassword(data);
+    updateUserPassword: isManager.createResolver(async (_, { id, data }, ctx) => {
+        const user = await (await Users.find({ id }));
+        console.log(ctx.user, ctx.user.isAdmin(), data);
+        if(ctx.user.isAdmin()){
+            await user.resetPassword(data);
+        }
+        else {
+            await user.changePassword(data);
+        }
         return { status: true };
     })
 }

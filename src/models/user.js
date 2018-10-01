@@ -21,8 +21,8 @@ const UserSchema = Schema({
     },
     contact: {
         type: Number,
-        default: 0,        
-        max: 9999999999,        
+        default: 0,
+        max: 9999999999,
     },
     role: {
         type: String,
@@ -64,28 +64,28 @@ const UserSchema = Schema({
         timestamps: true
     });
 
-export async function getHash(str){
-    try{        
+export async function getHash(str) {
+    try {
         const result = await bcrypt.hash(str, await bcrypt.genSalt(10));
         return result;
     }
-    catch(err){
+    catch (err) {
         throw err;
     }
 }
 
 UserSchema.pre('save', async function (next) {
-    const user = this;    
+    const user = this;
     if (user.isModified("password") || user.isNew) {
         user.password = await getHash(user.password);
-        next();        
+        next();
     }
     else {
         return next();
     }
 });
 
-UserSchema.pre('save', async function (next) {    
+UserSchema.pre('save', async function (next) {
     if (this.isNew) {
         this.balance = this.totalReceivedAmount;
         this.history.push({ amount: this.totalReceivedAmount });
@@ -93,21 +93,35 @@ UserSchema.pre('save', async function (next) {
     return next();
 });
 
+UserSchema.methods.isAdmin = function () {
+    return this.role === String(ROLES.ADMIN)
+};
+
+UserSchema.methods.isManager = function () {
+    return this.role === String(ROLES.MANAGER)
+};
 
 UserSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
 
-UserSchema.methods.changePassword = async function ({currentPassword, newPassword}) {
-    if(!currentPassword || !newPassword)throw new Error("Empty password");
+UserSchema.methods.changePassword = async function ({ currentPassword, newPassword }) {
+    if (!currentPassword || !newPassword) throw new Error("Empty password");
     const cmp = await bcrypt.compare(currentPassword, this.password);
     console.log(cmp);
-    if(cmp){
+    if (cmp) {
         return this.update({
             password: await getHash(newPassword)
         });
     }
-    throw new Error("Password does not match");    
+    throw new Error("Password does not match");
+};
+
+UserSchema.methods.resetPassword = async function ({ newPassword }) {
+    if (!newPassword) throw new Error("Empty password");
+    return this.update({
+        password: await getHash(newPassword)
+    });
 };
 
 UserSchema.methods.credit = async function (amount) {
