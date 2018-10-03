@@ -107,8 +107,7 @@ UserSchema.methods.comparePassword = function (password) {
 
 UserSchema.methods.changePassword = async function ({ currentPassword, newPassword }) {
     if (!currentPassword || !newPassword) throw new Error("Empty password");
-    const cmp = await bcrypt.compare(currentPassword, this.password);
-    console.log(cmp);
+    const cmp = await bcrypt.compare(currentPassword, this.password);    
     if (cmp) {
         return this.update({
             password: await getHash(newPassword)

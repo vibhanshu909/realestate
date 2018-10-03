@@ -1,12 +1,10 @@
-import { Site, SiteEntry } from '../models/site';
+import { Site } from '../models/site';
 import { isAdmin, isManager } from '../config/permissions';
 import { ROLES } from '../models/user';
 import crud from './crud';
 import { Users } from './users';
 
-
 export const Sites = crud(Site);
-export const SiteEntries = crud(SiteEntry);
 
 const typeDefs = `
     type Total {
@@ -48,101 +46,42 @@ const typeDefs = `
         name: String!
         location: String!        
     }
-    
-    type SiteEntry {
-        id: ID!
-        mistri: SiteEntryOutput
-        labour: SiteEntryOutput
-        eit: SiteEntryOutput
-        morang: SiteEntryOutput
-        baalu: SiteEntryOutput
-        githi: SiteEntryOutput
-        cement: SiteEntryOutput
-        saria: SiteEntryOutput
-        dust: SiteEntryOutput
-        other: SiteEntryOtherOutput
-        other2: SiteEntryOtherOutput
-        createdAt: String!
-        updatedAt: String!
-        managerSpentAmount: Float!
-        total: Float!
-    }
-
-    type SiteEntryOutput {
-        quantity: Int!,
-        cost: Float!
-        paid: Boolean!
-    }
-    
-    type SiteEntryOtherOutput {
-        quantity: String!,
-        cost: Float!
-        paid: Boolean!
-    }
-
-    
-    input SiteEntryInput {
-        mistri: SiteEntryFieldInput,
-        labour: SiteEntryFieldInput,
-        eit: SiteEntryFieldInput,
-        morang: SiteEntryFieldInput,
-        baalu: SiteEntryFieldInput,
-        githi: SiteEntryFieldInput,
-        cement: SiteEntryFieldInput,
-        saria: SiteEntryFieldInput,
-        dust: SiteEntryFieldInput,
-        other: SiteEntryFieldOtherInput,
-        other2: SiteEntryFieldOtherInput,
-        createdAt: String!
-    }
-    
-    input SiteEntryFieldInput {
-        quantity: Int!,
-        cost: Float!
-        paid: Boolean!
-    }
-    
-    input SiteEntryFieldOtherInput {
-        quantity: String!,
-        cost: Float!
-        paid: Boolean!
-    }
 `;
 
 // Queries allowed in graphql
 const QuerySchema = `
     sites(limit: Int, skip: Int = 0): [Site]
-    site(id: String!): Site
-    siteEntries(id: String!, limit: Int = 15, skip: Int = 0): Site
-    siteEntry(id: String!): SiteEntry
+    site(id: String!): Site    
 `;
 
 // Query resolvers
-const TypeResolvers = {    
+const TypeResolvers = {
     Site: {
-        count: (_, args, ctx) => {
-            return (ctx.data && ctx.data.count) || _.entries.length;
+        count: async (_, args, ctx) => {            
+            if(!ctx.result){                
+                ctx.result = (ctx.data && ctx.data.count) || _.entries.length;
+            }
+            return ctx.result;
         },
         entryCount: (_, args, ctx) => {
             return _.entries.length
         }
-    },
-    SiteEntry: {
     }
 };
 
 const RootQuery = {
     sites: isManager.createResolver(async (_, args, ctx) => {
-        ctx.data = { count: Site.countDocuments() };
+        ctx.data = { count: await Site.countDocuments() };
         const { user } = ctx;
+        let result;
         if (user.role == ROLES.ADMIN) {
-            return Sites.all(args).populate('manager');
+            result = await Promise.resolve(Sites.all(args).populate('manager'));
         }
         else {
-            let result = await Sites.all({ query: { _id: { $in: user.sites } }, ...args }).populate('manager');
+            result = await Sites.all({ query: { _id: { $in: user.sites } }, ...args }).populate('manager');
             ctx.data = { count: result.length };
-            return result;
         }
+        return result;
     }),
     site: isManager.createResolver((_, args, ctx) => {
         ctx.data = { count: Site.countDocuments() };
@@ -158,14 +97,6 @@ const RootQuery = {
                 throw new Error("Site doesn't belong to user");
             }
         }
-    }),
-    siteEntries: isManager.createResolver(async (_, { id, limit, skip }, ctx) => {
-        const site = await Sites.find({ id });        
-        ctx.data = { count: site.entries.length };
-        return Sites.find({ id }).populate('manager').populate({ path: 'entries', options: { limit, skip, sort: "-createdAt" } });
-    }),
-    siteEntry: isManager.createResolver(async (_, args, ctx) => {
-        return SiteEntries.find(args);
     })
 };
 
@@ -173,18 +104,7 @@ const RootQuery = {
 const MutationSchema = `
     createSite(data: SiteInput!): Site
     updateSite(id: String!, data: SiteUpdateInput!): Site
-    deleteSites(ids: [String!]!): Status
-    deleteSiteEntry(siteId: String!, ids: [String!]!): Status
-    makeSiteEntry(
-        siteId: String!,
-        data: SiteEntryInput!
-    ): SiteEntry
-    updateSiteEntry(
-        siteId: String!,
-        id: String!,
-        data: SiteEntryInput!
-    ): SiteEntry
-    deleteSiteEntries(siteId: String!, ids: [String!]!): Status
+    deleteSites(ids: [String!]!): Status    
 `;
 
 // Mutation resolvers
@@ -217,37 +137,6 @@ const RootMutation = {
     deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
         await Sites.remove(args);
         return { status: true }
-    }),
-    deleteSiteEntry: isAdmin.createResolver(async (_, args, ctx) => {
-        let site = await Sites.find({ id: args.siteId });
-        await Promise.all(args.ids.map(id => site.entries.pull(id)));
-        await site.save();
-        return { status: true };
-    }),
-    makeSiteEntry: isManager.createResolver(async (_, { siteId, data }, ctx) => {
-        const site = await Sites.find({ id: siteId });
-        const entry = await SiteEntries.create(data);
-        site.entries.unshift(entry);
-        // const { managerSpentAmount } = entry.toObject();
-        // Object.values(rest).forEach(e => managerSpentAmount += e.paid ? e.cost : 0)
-        site.managerSpentAmount += entry.toObject().managerSpentAmount;
-        site.save();
-        return entry;
-    }),
-    updateSiteEntry: isManager.createResolver(async (_, { siteId, id, data }, ctx) => {
-        let site = Sites.find({ id: siteId });
-        let oldEntry = SiteEntries.find({ id });
-        let { managerSpentAmount } = (await oldEntry).toObject();
-        await SiteEntries.model.findByIdAndUpdate(id, data);
-        let entry = await SiteEntries.find({ id });
-        site = await site;
-        // site.entries.unshift(entry);                        
-        site.managerSpentAmount += entry.toObject().managerSpentAmount - managerSpentAmount;
-        site.save();
-        console.log("oldEntry.managerSpentAmount...", managerSpentAmount);
-        console.log("entry.managerSpentAmount...", entry.toObject().managerSpentAmount);
-        console.log("site.managerSpentAmount...", site.managerSpentAmount);
-        return entry;
     }),
 }
 
