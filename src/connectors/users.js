@@ -6,9 +6,8 @@ import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
 export const Users = crud(User);
 
-Users.login = async (params) => {
-    console.log(params);
-    const { username, password } = params;    
+Users.login = async (params) => {    
+    const { username, password } = params;
     const user = await User.findOne({ username });
     if (!user) {
         throw new Error("Can't find user");
@@ -79,9 +78,9 @@ const QuerySchema = `
 // Query resolvers
 
 const RootQuery = {
-    users: isAdmin.createResolver((_, args, ctx) => {
+    users: isAdmin.createResolver(async (_, args, ctx) => {
         ctx.data = {
-            count: User.count({}),
+            count: await User.countDocuments(),
         };
         return Users.all({ ...args, query: { role: { $ne: ROLES.ADMIN } } })
     }),
@@ -91,9 +90,7 @@ const RootQuery = {
         ctx.data = {
             count: user.history.length,
         };
-        return Users.find(args).select({ 'history': { '$slice': [skip, limit] } });
-        // return user.select({ 'history': { '$slice': [skip,limit] } })
-        // return user.history.find({}, {rest});
+        return Users.find(args).select({ 'history': { '$slice': [skip, limit] } });        
     }),
     user: isManager.createResolver((_, args, ctx) => {
         return Users.find(args);
@@ -102,15 +99,12 @@ const RootQuery = {
 
 const TypeResolvers = {
     User: {
-        count: (_, args, ctx) => {
-            // console.log("count....", ctx.count);
-            return ctx.data.count;
+        count: async (_, args, ctx) => {
+            if (!ctx.result) {
+                ctx.result = ctx.data.count - 1;
+            }
+            return ctx.result;
         },
-        // history: async (_, args, ctx) => {
-        //     // console.log("count....", ctx.count);
-        //     return _.toObject().history;
-        //     // return { amount: 0 };
-        // },
         sites: async (_, args, ctx) => {
             return (await User.populate(_, 'sites')).sites;
         },
@@ -158,15 +152,13 @@ const RootMutation = {
         const user = await (await Users.find({ id })).credit(amount);
         return { status: true };
     }),
-    updateUserContact: isAdmin.createResolver(async (_, { id, contact }) => {
-        console.log(contact, typeof(contact));
+    updateUserContact: isAdmin.createResolver(async (_, { id, contact }) => {        
         await User.findByIdAndUpdate({ _id: id }, { contact });
         return Users.find({ id });
     }),
     updateUserPassword: isManager.createResolver(async (_, { id, data }, ctx) => {
-        const user = await (await Users.find({ id }));
-        console.log(ctx.user, ctx.user.isAdmin(), data);
-        if(ctx.user.isAdmin()){
+        const user = await (await Users.find({ id }));        
+        if (ctx.user.isAdmin()) {
             await user.resetPassword(data);
         }
         else {

@@ -60,17 +60,17 @@ const QuerySchema = `
 const RootQuery = {
     properties: isAdmin.createResolver((_, args, ctx) => {
         ctx.data = {
-            count: Property.count({}),
+            count: Property.countDocuments(),
         };
-        return Properties.all({ ...args, query: { } })
+        return Properties.all({ ...args, query: {} })
     }),
     propertyCreditHistory: isManager.createResolver(async (_, args, ctx) => {
-        const {id, skip, limit} = args;
+        const { id, skip, limit } = args;
         const property = await Properties.find(args);
         ctx.data = {
             count: property.history.length,
         };
-        return Properties.find(args).select({ 'history': { '$slice': [skip,limit] } });
+        return Properties.find(args).select({ 'history': { '$slice': [skip, limit] } });
         // return property.select({ 'history': { '$slice': [skip,limit] } })
         // return property.history.find({}, {rest});
     }),
@@ -81,9 +81,9 @@ const RootQuery = {
 
 const TypeResolvers = {
     Property: {
-        count: (_, args, ctx) => {            
+        count: (_, args, ctx) => {
             return ctx.data.count;
-        }        
+        }
     },
 };
 
@@ -98,17 +98,19 @@ const MutationSchema = `
 // Mutation resolvers
 const RootMutation = {
     createProperty: isAdmin.createResolver(async (_, { data }, ctx) => {
-        const result = await Properties.create({...data, owner: ctx.user});
+        const result = await Properties.create({ ...data, owner: ctx.user });
         ctx.data = {
             count: await Property.count({}),
         };
         return result;
     }),
-    updateProperty: isManager.createResolver((_, { id, data }) => Properties.update({ id, ...data })),
-    deleteProperty: isAdmin.createResolver((_, args) => Properties.remove(args)),    
+    updateProperty: isManager.createResolver(async (_, { id, data }) => {
+        return Properties.update({ id, ...data });        
+    }),
+    deleteProperty: isAdmin.createResolver((_, args) => Properties.remove(args)),
     propertyCredit: isAdmin.createResolver(async (_, { id, amount }) => {
         let property = await Properties.find({ id });
-        await property.credit(amount); 
+        await property.credit(amount);
         return property.history[0];
     })
 }

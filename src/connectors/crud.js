@@ -1,36 +1,34 @@
-export default function(model){
+export default function (model) {
     return {
 
-        all: function({query, limit, skip}) {
-            return model.find(query).skip(skip).limit(limit).sort({createdAt: -1});
+        all: function ({ query, limit, skip }) {
+            return model.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
         },
 
-        find: function({id}) {
+        find: function ({ id }) {
             return model.findById(id);
         },
-        
-        first: function() {
+
+        first: function () {
             return model.findOne();
         },
 
-        create: function(args) {
+        create: function (args) {
             return model.create(args);
         },
 
-        update: async function(args) {
+        update: function (args) {
             const { id, ...rest } = args;
-            return await model.findByIdAndUpdate(id, rest);
+            return model.findByIdAndUpdate(id, rest, { new: true });
         },
 
-        remove: async function({ids}) {           
-            console.log("args...", ids); 
-            // ids.forEach(e => (await model.deleteOne({ _id: e })));
-            try {                
+        remove: async function ({ ids }) {                        
+            try {
                 ids.forEach(async (e) => {
-                    await model.findOneAndRemove({_id: e}, (err, item) => item.remove());
+                    await model.findOneAndRemove({ _id: e }, (err, item) => item.remove());
                 })
             } catch (error) {
-                
+
             }
             // return await model.deleteMany({ _id: { '$in':ids}});
         },

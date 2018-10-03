@@ -34,8 +34,7 @@ export function fastSend(args) {
 }
 
 export function way2sms(args) {
-    const { to, msg } = args;
-    console.log(args);
+    const { to, msg } = args;    
     const req = unirest("POST", "https://smsapi.engineeringtgr.com/send/");
     const userid = "9984432113";
     const password = "@Iamvsquare909";
