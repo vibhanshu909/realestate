@@ -85,12 +85,13 @@ const RootQuery = {
     }),
     site: isManager.createResolver((_, args, ctx) => {
         ctx.data = { count: Site.countDocuments() };
-        const { user } = ctx;
+        const { user } = ctx;        
         if (user.role == ROLES.ADMIN) {
             return Sites.find(args).populate('manager');
         }
         else {
-            if (args.id in user.sites) {
+            let flag = user.sites.find(e => String(e) === String(args.id))            
+            if (flag) {
                 return Sites.find(args).populate('manager');
             }
             else {
