@@ -6,7 +6,7 @@
     "scripts": {
         "build": "rimraf ./dist && babel -d ./dist ./src",
         "start": "babel-watch src/index.js",
-        "start-pro": "npm run build && npm run migrate && pm2 restart all",
+        "start-pro": "npm run build && pm2 restart all",
         "seed": "babel-watch ./src/models/seeds/user.js",
         "fake-seed": "babel-watch ./src/models/seeds/fake.js",
         "dev-seed": "babel-watch ./src/models/seeds/dev_user.js",
