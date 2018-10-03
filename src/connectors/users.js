@@ -152,7 +152,7 @@ const RootMutation = {
         const user = await (await Users.find({ id })).credit(amount);
         return { status: true };
     }),
-    updateUserContact: isAdmin.createResolver(async (_, { id, contact }) => {        
+    updateUserContact: isManager.createResolver(async (_, { id, contact }) => {        
         await User.findByIdAndUpdate({ _id: id }, { contact });
         return Users.find({ id });
     }),
