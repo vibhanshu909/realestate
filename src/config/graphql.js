@@ -8,6 +8,7 @@ import User from '../models/user';
 
 import Users from '../connectors/users';
 import Sites from '../connectors/sites';
+import SiteEntries from '../connectors/siteEntries';
 import Properties from '../connectors/properties';
 
 export default function(app){
@@ -18,12 +19,14 @@ export default function(app){
         
         ${Users.typeDefs}
         ${Sites.typeDefs}
+        ${SiteEntries.typeDefs}
         ${Properties.typeDefs}
 
         # the schema allows the following query:
         type Query {
             ${Users.QuerySchema}
             ${Sites.QuerySchema}
+            ${SiteEntries.QuerySchema}
             ${Properties.QuerySchema}
         }
 
@@ -31,6 +34,7 @@ export default function(app){
         type Mutation {
             ${Users.MutationSchema}
             ${Sites.MutationSchema}
+            ${SiteEntries.MutationSchema}
             ${Properties.MutationSchema}
         }
     `;
@@ -38,16 +42,19 @@ export default function(app){
             Query: Object.assign({},
                 Users.RootQuery,
                 Sites.RootQuery,
+                SiteEntries.RootQuery,
                 Properties.RootQuery,
             ),
             Mutation: Object.assign({},
                 Users.RootMutation,
                 Sites.RootMutation,
+                SiteEntries.RootMutation,
                 Properties.RootMutation,
             ),
         },
         Users.TypeResolvers,
         Sites.TypeResolvers,
+        SiteEntries.TypeResolvers,
         Properties.TypeResolvers,
     );
 

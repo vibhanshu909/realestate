@@ -14,7 +14,7 @@ db.connect(config.database, { useNewUrlParser: true })
         console.log('Could not connect to the database. Exiting now...');
         process.exit();
     });
-// db.set('debug', true);
-console.log("congig/main");
+db.set('debug', true);
 export const mongoose = db;
+export const ObjectId = mongoose.Schema.Types.ObjectId;
 export default config;
