@@ -5,11 +5,7 @@ import { SiteEntries } from '../../connectors/siteEntries';
   console.log("migrate called...");
   const sites = await Sites.all({});
   for (const site of sites) {
-    for (const e of site.entries) {
-      await SiteEntries.model.findByIdAndUpdate(e, {
-        site
-      });
-    }
+    await site.save()    
   }
   console.log("migration done. please delete the migration file");  
 })()

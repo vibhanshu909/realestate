@@ -23,7 +23,7 @@ const typeDefs = `
     }
 
     type PropertyCreditHistory {
-        amount: Int!
+        amount: Float!
         createdAt: String!
     }
 

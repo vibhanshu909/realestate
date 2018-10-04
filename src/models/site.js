@@ -4,9 +4,16 @@ import { Users } from '../connectors/users';
 var Schema = mongoose.Schema;
 
 const totalRepeater = {
-    type: Number,
-    min: 0,
-    default: 0,
+    quantity: {
+        type: Number,
+        min: 0,
+        default: 0,
+    },
+    cost: {    
+        type: Number,
+        min: 0,
+        default: 0,
+    }
 };
 
 const SiteSchema = Schema({
@@ -45,8 +52,16 @@ const SiteSchema = Schema({
         cement: totalRepeater,
         saria: totalRepeater,
         dust: totalRepeater,
-        other: totalRepeater,
-        other2: totalRepeater
+        other: {
+            type: Number,
+            min: 0,
+            default: 0
+        },
+        other2: {
+            type: Number,
+            min: 0,
+            default: 0
+        }
     }
 },
     {
@@ -60,28 +75,62 @@ SiteSchema.methods.reEval = async function () {
     this.update({ managerSpentAmount });
 }
 async function totalHook(_) {
+    console.log("totalHook called")
     let total = 0;
     const site = await Site.populate(this, 'entries');
     const { entries } = site.toObject();
     const newTotal = {
-        mistri: 0,
-        labour: 0,
-        eit: 0,
-        morang: 0,
-        baalu: 0,
-        githi: 0,
-        cement: 0,
-        saria: 0,
-        dust: 0,
+        mistri: {
+            quantity: 0,
+            cost: 0
+        },
+        labour: {
+            quantity: 0,
+            cost: 0
+        },
+        eit: {
+            quantity: 0,
+            cost: 0
+        },
+        morang: {
+            quantity: 0,
+            cost: 0
+        },
+        baalu: {
+            quantity: 0,
+            cost: 0
+        },
+        githi: {
+            quantity: 0,
+            cost: 0
+        },
+        cement: {
+            quantity: 0,
+            cost: 0
+        },
+        saria: {
+            quantity: 0,
+            cost: 0
+        },
+        dust: {
+            quantity: 0,
+            cost: 0
+        },
         other: 0,
         other2: 0,
     };
     entries.forEach(e => {
-        total += e.total;
-        Object.keys(e).map(x => {            
-            newTotal[x] += e[x].cost;
+        const {_id, total: t, other, other2, managerSpentAmount, site, createdAt, updatedAt, __v, ...data} = e;
+        total += t;
+        newTotal.other += other.cost;
+        newTotal.other2 += other2.cost;
+        Object.keys(data).map(x => {
+            console.log(x);
+            newTotal[x].quantity += e[x].quantity;
+            newTotal[x].cost += e[x].cost;
         })
     });
+    console.log(newTotal);
     this.total = newTotal;
     this.cost = total;
 }
