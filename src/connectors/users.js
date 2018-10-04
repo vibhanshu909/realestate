@@ -33,7 +33,7 @@ const typeDefs = `
         contact: Float!
         sites: [Site!]!
         siteCount: Int!
-        totalSitesCost: Int!
+        totalSitesCost: Float!
         totalReceivedAmount: Float!
         spent: Float!
         balance: Float!
@@ -44,7 +44,7 @@ const typeDefs = `
     }
 
     type UserCreditHistory {
-        amount: Int!
+        amount: Float!
         createdAt: String!
         count: Int!
     }

@@ -79,7 +79,10 @@ const QuerySchema = `
 const TypeResolvers = {
     SiteEntry: {
         site: isManager.createResolver(async (_, args, ctx) => {
-            return ctx.data.site;
+            if(ctx.data){
+                return ctx.data.site;
+            }
+            Sites.find({id: _.site})
         })
     }
 };
@@ -87,16 +90,17 @@ const TypeResolvers = {
 const RootQuery = {
     siteEntries: isManager.createResolver(async (_, { siteId: id, limit, skip }, ctx) => {
         const site = await Sites.find({ id });
-        ctx.data = { count: site.entries.length };
-        return (await Sites.find({ id })
-            .populate({
+        const result = await Site.populate(site, {
                 path: 'entries',
                 options: {
                     limit,
                     skip,
                     sort: "-createdAt"
                 }
-            })).entries;
+            });
+        ctx.data = { count: site.entries.length, site };
+        console.log(result.entries, ctx);
+        return result.entries;
     }),
     siteEntry: isManager.createResolver(async (_, args, ctx) => {
         return SiteEntries.find(args);
@@ -124,7 +128,7 @@ const RootMutation = {
         ctx.data = {
             site
         };
-        const entry = await SiteEntries.create({ site: siteId, ...data });        
+        const entry = await SiteEntries.create({ site: siteId, ...data });
         site.entries.unshift(entry);
         // const { managerSpentAmount } = entry.toObject();
         // Object.values(rest).forEach(e => managerSpentAmount += e.paid ? e.cost : 0)
@@ -135,14 +139,14 @@ const RootMutation = {
     updateSiteEntry: isAdmin.createResolver(async (_, { siteId, id, data }, ctx) => {
         let site = Sites.find({ id: siteId });
         let oldEntry = SiteEntries.find({ id });
-        let { managerSpentAmount } = (await oldEntry).toObject();        
+        let { managerSpentAmount } = (await oldEntry).toObject();
         let entry = await SiteEntries.update({ id, ...data });
         site = await site;
         ctx.data = {
             site
-        };    
+        };
         site.managerSpentAmount += entry.toObject().managerSpentAmount - managerSpentAmount;
-        site.save();        
+        site.save();
         return entry;
     }),
     deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {

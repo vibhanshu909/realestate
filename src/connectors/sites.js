@@ -8,17 +8,17 @@ export const Sites = crud(Site);
 
 const typeDefs = `
     type Total {
-        mistri: Int!
-        labour: Int!
-        eit: Int!
-        morang: Int!
-        baalu: Int!
-        githi: Int!
-        cement: Int!
-        saria: Int!
-        dust: Int!
-        other: Int!
-        other2: Int!
+        mistri: Float!
+        labour: Float!
+        eit: Float!
+        morang: Float!
+        baalu: Float!
+        githi: Float!
+        cement: Float!
+        saria: Float!
+        dust: Float!
+        other: Float!
+        other2: Float!
     }
     type Site {
         id: ID!
@@ -89,8 +89,8 @@ const RootQuery = {
     if (user.role == ROLES.ADMIN) {
       return Sites.find(args).populate('manager');
     }
-    else {
-      if (user.sites.indexOf(args.id)) {
+    else {      
+      if (user.sites.find(e => String(e) === args.id)) {
         return Sites.find(args).populate('manager');
       }
       else {
