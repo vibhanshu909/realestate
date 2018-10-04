@@ -7,16 +7,20 @@ import { Users } from './users';
 export const Sites = crud(Site);
 
 const typeDefs = `
-    type Total {
-        mistri: Float!
-        labour: Float!
-        eit: Float!
-        morang: Float!
-        baalu: Float!
-        githi: Float!
-        cement: Float!
-        saria: Float!
-        dust: Float!
+    type SiteTotalField {
+      quantity: Int!
+      cost: Float!
+    }
+    type SiteTotal {
+        mistri: SiteTotalField!
+        labour: SiteTotalField!
+        eit: SiteTotalField!
+        morang: SiteTotalField!
+        baalu: SiteTotalField!
+        githi: SiteTotalField!
+        cement: SiteTotalField!
+        saria: SiteTotalField!
+        dust: SiteTotalField!
         other: Float!
         other2: Float!
     }
@@ -29,7 +33,7 @@ const typeDefs = `
         managerSpentAmount: Float!
         cost: Float!
         entries: [SiteEntry!]
-        total: Total!
+        total: SiteTotal!
         count: Int!        
         createdAt: String!
         updatedAt: String!
@@ -109,8 +113,7 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-  createSite: isAdmin.createResolver(async (_, { data }, ctx) => {
-    console.log("args....", data);
+  createSite: isAdmin.createResolver(async (_, { data }, ctx) => {    
     let site = await Sites.create(data);
     const user = await Users.find({ id: data.manager });
     user.sites.push(site);
