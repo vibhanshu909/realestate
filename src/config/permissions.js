@@ -12,10 +12,10 @@ const createResolver = (resolver) => {
 };
 
 const isAuth = createResolver((parent, args, context, info) => {
-    if(context.expired){
+    if (context.expired) {
         throw new Error("Session Expired");
     }
-    else if(!context.user){
+    else if (!context.user) {
         throw new Error("Not Authenticated");
     }
     // return a new context for the next resolver if needed.
@@ -23,14 +23,14 @@ const isAuth = createResolver((parent, args, context, info) => {
 });
 
 const isAdmin = isAuth.createResolver((parent, args, context, info) => {
-    if(context.user.role < ROLES.ADMIN){
+    if (context.user.role < ROLES.ADMIN) {
         throw new Error("Not Administrator");
     }
     return context;
 });
 
 const isManager = isAuth.createResolver((parent, args, context, info) => {
-    if(context.user.role < ROLES.MANAGER){
+    if (context.user.role < ROLES.MANAGER) {
         throw new Error("Not a Manager");
     }
     return context;

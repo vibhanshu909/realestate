@@ -132,7 +132,7 @@ const RootMutation = {
         site.save();
         return entry;
     }),
-    updateSiteEntry: isManager.createResolver(async (_, { siteId, id, data }, ctx) => {
+    updateSiteEntry: isAdmin.createResolver(async (_, { siteId, id, data }, ctx) => {
         let site = Sites.find({ id: siteId });
         let oldEntry = SiteEntries.find({ id });
         let { managerSpentAmount } = (await oldEntry).toObject();        

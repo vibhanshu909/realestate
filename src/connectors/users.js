@@ -37,15 +37,16 @@ const typeDefs = `
         totalReceivedAmount: Float!
         spent: Float!
         balance: Float!
-        history: [History]!
+        history: [UserCreditHistory]!
         createdAt: String!
         updatedAt: String!
         count: Int!
     }
 
-    type History {
+    type UserCreditHistory {
         amount: Int!
-        createdAt: String!        
+        createdAt: String!
+        count: Int!
     }
 
     input UserInput {
@@ -72,7 +73,7 @@ const typeDefs = `
 const QuerySchema = `
     users(limit: Int, skip: Int = 0): [User]
     user(id: String!): User
-    userCreditHistory(id: String!, limit: Int, skip: Int = 0): User!
+    userCreditHistory(id: String!, limit: Int, skip: Int = 0): [UserCreditHistory!]
 `;
 
 // Query resolvers
@@ -90,7 +91,7 @@ const RootQuery = {
         ctx.data = {
             count: user.history.length,
         };
-        return Users.find(args).select({ 'history': { '$slice': [skip, limit] } });        
+        return (await Users.find(args).select({ 'history': { '$slice': [skip, limit] } })).history;
     }),
     user: isManager.createResolver((_, args, ctx) => {
         return Users.find(args);
@@ -99,7 +100,7 @@ const RootQuery = {
 
 const TypeResolvers = {
     User: {
-        count: async (_, args, ctx) => {
+        count: (_, args, ctx) => {
             if (!ctx.result) {
                 ctx.result = ctx.data.count - 1;
             }
@@ -118,6 +119,14 @@ const TypeResolvers = {
             }, 0);
         }
     },
+    UserCreditHistory: {
+        count: (_, args, ctx) => {
+            if (!ctx.result) {
+                ctx.result = ctx.data.count;
+            }
+            return ctx.result;
+        },
+    }
 };
 
 // Mutations allowed in graphql
@@ -126,7 +135,7 @@ const MutationSchema = `
     updateUser(id: String!, data: UserInput!): User
     deleteUser(id: String!): User
     login(data: LoginInput!): Login
-    credit(id: String!, amount: Float!): Status
+    credit(id: String!, amount: Float!): UserCreditHistory!
     updateUserContact(id: String!, contact: Float!): User
     updateUserPassword(id: String!, data: UserPasswordInput!): Status
 `;
@@ -149,8 +158,9 @@ const RootMutation = {
     deleteUser: isAdmin.createResolver((_, args) => Users.remove(args)),
     login: (_, { data }) => Users.login(data),
     credit: isAdmin.createResolver(async (_, { id, amount }) => {
-        const user = await (await Users.find({ id })).credit(amount);
-        return { status: true };
+        let user = await Users.find({ id });
+        await user.credit(amount);        
+        return await (await Users.find({ id })).toObject().history[0];
     }),
     updateUserContact: isManager.createResolver(async (_, { id, contact }) => {        
         await User.findByIdAndUpdate({ _id: id }, { contact });
