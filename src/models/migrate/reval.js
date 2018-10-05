@@ -1,5 +1,5 @@
-import { Sites } from '../connectors/sites';
-import { SiteEntries } from '../connectors/siteEntries';
+import { Sites } from '../../connectors/sites';
+import { SiteEntries } from '../../connectors/siteEntries';
 
 (async function () {
   console.log("migrate called...");
