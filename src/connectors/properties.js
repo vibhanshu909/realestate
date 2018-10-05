@@ -25,6 +25,7 @@ const typeDefs = `
     type PropertyCreditHistory {
         amount: Float!
         createdAt: String!
+        count: Int!
     }
 
     input PropertyInput {
@@ -52,7 +53,7 @@ const typeDefs = `
 const QuerySchema = `
     properties(limit: Int, skip: Int = 0): [Property]
     property(id: String!): Property
-    propertyCreditHistory(id: String!, limit: Int, skip: Int = 0): Property!
+    propertyCreditHistory(id: String!, limit: Int, skip: Int = 0): [PropertyCreditHistory!]!
 `;
 
 // Query resolvers
@@ -70,7 +71,7 @@ const RootQuery = {
         ctx.data = {
             count: property.history.length,
         };
-        return Properties.find(args).select({ 'history': { '$slice': [skip, limit] } });
+        return (await Properties.find(args).select({ 'history': { '$slice': [skip, limit] } })).history;
         // return property.select({ 'history': { '$slice': [skip,limit] } })
         // return property.history.find({}, {rest});
     }),
@@ -85,6 +86,11 @@ const TypeResolvers = {
             return ctx.data.count;
         }
     },
+    PropertyCreditHistory: {
+        count: (_, args, ctx) => {
+            return ctx.data.count;
+        },
+    }
 };
 
 // Mutations allowed in graphql
@@ -105,7 +111,7 @@ const RootMutation = {
         return result;
     }),
     updateProperty: isManager.createResolver(async (_, { id, data }) => {
-        return Properties.update({ id, ...data });        
+        return Properties.update({ id, ...data });
     }),
     deleteProperty: isAdmin.createResolver((_, args) => Properties.remove(args)),
     propertyCredit: isAdmin.createResolver(async (_, { id, amount }) => {

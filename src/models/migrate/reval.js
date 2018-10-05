@@ -5,10 +5,8 @@ import { SiteEntries } from '../connectors/siteEntries';
   console.log("migrate called...");
   const entries = await SiteEntries.all({});
   for (const e of entries) {
-    await e.save()
-    console.log(e);
-    const site = await Sites.find({ id: e.site });
-    console.log(site);
+    await e.save()    
+    const site = await Sites.find({ id: e.site });    
     if (site) {
       await site.reEval();
       await site.save();
