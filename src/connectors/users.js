@@ -6,7 +6,7 @@ import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
 export const Users = crud(User);
 
-Users.login = async (params) => {    
+Users.login = async (params) => {
     const { username, password } = params;
     const user = await User.findOne({ username });
     if (!user) {
@@ -159,15 +159,15 @@ const RootMutation = {
     login: (_, { data }) => Users.login(data),
     credit: isAdmin.createResolver(async (_, { id, amount }) => {
         let user = await Users.find({ id });
-        await user.credit(amount);        
+        await user.credit(amount);
         return await (await Users.find({ id })).toObject().history[0];
     }),
-    updateUserContact: isManager.createResolver(async (_, { id, contact }) => {        
+    updateUserContact: isManager.createResolver(async (_, { id, contact }) => {
         await User.findByIdAndUpdate({ _id: id }, { contact });
         return Users.find({ id });
     }),
     updateUserPassword: isManager.createResolver(async (_, { id, data }, ctx) => {
-        const user = await (await Users.find({ id }));        
+        const user = await (await Users.find({ id }));
         if (ctx.user.isAdmin()) {
             await user.resetPassword(data);
         }
