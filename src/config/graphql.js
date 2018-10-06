@@ -70,7 +70,7 @@ export default function(app){
             user: req.user || null,
             expired: false,
         };
-        // console.log(req.headers);
+        console.log(req.headers);
         if(req.headers.authorization){
             const token = req.headers.authorization;
             try {

@@ -1,7 +1,6 @@
 import { Site } from '../models/site';
 import { SiteEntry } from '../models/siteEntry';
 import { isAdmin, isManager } from '../config/permissions';
-import { ObjectId } from '../config/main';
 import crud from './crud';
 
 export const Sites = crud(Site);
