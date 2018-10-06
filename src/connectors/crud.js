@@ -17,9 +17,9 @@ export default function (model) {
             return model.create(args);
         },
 
-        update: function (args) {
+        update: function (args, validate = true) {
             const { id, ...rest } = args;
-            return model.findByIdAndUpdate(id, rest, { new: true });
+            return model.findByIdAndUpdate(id, rest, { new: true, runValidators: validate });
         },
 
         remove: async function ({ ids }) {                        

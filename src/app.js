@@ -8,7 +8,7 @@ import propertyTask from './tasks/property';
 // Initialize the app
 const app = express();
 
-app.use(logger('dev'));
+// app.use(logger('dev'));
 
 var whitelist = ['https://kka.easylucknow.com']
 var corsOptions = {
