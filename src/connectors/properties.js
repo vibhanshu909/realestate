@@ -117,7 +117,8 @@ const RootMutation = {
     propertyCredit: isAdmin.createResolver(async (_, { id, amount }) => {
         let property = await Properties.find({ id });
         await property.credit(amount);
-        return property.history[0];
+        return await (await Properties.find({ id })).toObject().history[0];
+        // return property.history[0];
     })
 }
 // const SchemaDirectives = {
