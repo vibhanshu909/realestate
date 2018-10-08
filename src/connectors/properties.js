@@ -25,6 +25,7 @@ const typeDefs = `
     type PropertyCreditHistory {
         amount: Float!
         createdAt: String!
+        count: Int!
     }
 
     input PropertyInput {
@@ -46,13 +47,18 @@ const typeDefs = `
         nextDueDate: String!
         note: String
     }
+
+    input PropertyCreditInput {
+        amount: Float!
+        nextDueDate: String!
+    }
 `;
 
 // Queries allowed in graphql
 const QuerySchema = `
     properties(limit: Int, skip: Int = 0): [Property]
     property(id: String!): Property
-    propertyCreditHistory(id: String!, limit: Int, skip: Int = 0): Property!
+    propertyCreditHistory(id: String!, limit: Int, skip: Int = 0): [PropertyCreditHistory!]!
 `;
 
 // Query resolvers
@@ -70,7 +76,7 @@ const RootQuery = {
         ctx.data = {
             count: property.history.length,
         };
-        return Properties.find(args).select({ 'history': { '$slice': [skip, limit] } });
+        return (await Properties.find(args).select({ 'history': { '$slice': [skip, limit] } })).history;
         // return property.select({ 'history': { '$slice': [skip,limit] } })
         // return property.history.find({}, {rest});
     }),
@@ -85,6 +91,11 @@ const TypeResolvers = {
             return ctx.data.count;
         }
     },
+    PropertyCreditHistory: {
+        count: (_, args, ctx) => {
+            return ctx.data.count;
+        },
+    }
 };
 
 // Mutations allowed in graphql
@@ -92,7 +103,7 @@ const MutationSchema = `
     createProperty(data: PropertyInput!): Property
     updateProperty(id: String!, data: PropertyUpdateInput!): Property
     deleteProperty(id: String!): Property    
-    propertyCredit(id: String!, amount: Float!): PropertyCreditHistory
+    propertyCredit(id: String!, data: PropertyCreditInput!): PropertyCreditHistory
 `;
 
 // Mutation resolvers
@@ -105,13 +116,14 @@ const RootMutation = {
         return result;
     }),
     updateProperty: isManager.createResolver(async (_, { id, data }) => {
-        return Properties.update({ id, ...data });        
+        return Properties.update({ id, ...data });
     }),
     deleteProperty: isAdmin.createResolver((_, args) => Properties.remove(args)),
-    propertyCredit: isAdmin.createResolver(async (_, { id, amount }) => {
+    propertyCredit: isAdmin.createResolver(async (_, { id, data }) => {
         let property = await Properties.find({ id });
-        await property.credit(amount);
-        return property.history[0];
+        await property.credit(data);
+        return await (await Properties.find({ id })).toObject().history[0];
+        // return property.history[0];
     })
 }
 // const SchemaDirectives = {

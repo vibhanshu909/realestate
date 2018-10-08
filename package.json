@@ -10,9 +10,12 @@
         "seed": "babel-watch ./src/models/seeds/user.js",
         "fake-seed": "babel-watch ./src/models/seeds/fake.js",
         "dev-seed": "babel-watch ./src/models/seeds/dev_user.js",
-        "test": "babel-watch ./src/models/test.js",
-        "migrate": "node ./dist/models/migrate/index.js",
-        "dev-migrate": "babel-watch ./src/models/migrate/index.js"
+        "test-seed": "node ./dist/models/seeds/test_user.js",
+        "dev-test": "babel-watch ./src/models/test.js",
+        
+        "test": "ENV=testing jest ./src/tests",
+        "migrate": "node ./dist/models/migrate/05_10_2018_reval.js",
+        "dev-migrate": "babel-watch ./src/models/migrate/05_10_2018_reval.js"
     },
     "keywords": [],
     "author": "",
@@ -35,7 +38,9 @@
         "unirest": "^0.5.1"
     },
     "devDependencies": {
+        "axios": "^0.18.0",
         "babel-cli": "^6.26.0",
+        "babel-jest": "^23.6.0",
         "babel-plugin-dynamic-import-node": "^2.0.0",
         "babel-plugin-transform-object-rest-spread": "^6.26.0",
         "babel-plugin-transform-runtime": "^6.23.0",
@@ -43,6 +48,7 @@
         "babel-watch": "^2.0.7",
         "cors": "^2.8.4",
         "faker": "^4.1.0",
+        "jest": "^23.6.0",
         "morgan": "^1.9.0",
         "rimraf": "^2.6.2"
     }

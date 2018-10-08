@@ -3,54 +3,61 @@ import { mongoose } from '../config/main';
 var Schema = mongoose.Schema;
 
 const PropertySchema = Schema({
-    name: {
-        type: String,
-        lowercase: true,
-        unique: true,
-        required: true,
+  name: {
+    type: String,
+    lowercase: true,
+    unique: true,
+    required: true,
+  },
+  location: {
+    type: String,
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  buyer: {
+    type: String,
+  },
+  buyerNumber: {
+    type: Number,
+  },
+  totalReceivedAmount: {
+    type: Number,
+    default: 0,
+  },
+  balance: {
+    type: Number,
+    default: 0
+  },
+  nextDueDate: {
+    type: Date,
+    validate: {
+      validator: (val) => {
+        console.log("value is: ", val);
+        return Date.now() <= new Date(val)
+      },
+      message: props => `${props.value} must be in future`
     },
-    location: {
-        type: String,
-        required: true,
-    },
-    price: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    buyer: {
-        type: String,        
-    },
-    buyerNumber: {
-        type: Number,                
-    },
-    totalReceivedAmount: {
-        type: Number,
-        default: 0,
-    },
-    balance: {
-        type: Number,
-        default: 0
-    },
-    nextDueDate: {
-        type: Date,        
-    },
-    note: String,
-    history: [{
-        amount: Number,
-        createdAt: {
-            type: Date,
-            default: new Date(new Date().toDateString())
-        }
-    }],
-    owner: {
-        type: Schema.Types.ObjectId,
-        ref: "User"
+  },
+  note: String,
+  history: [{
+    amount: Number,
+    createdAt: {
+      type: Date,
+      default: () => new Date(new Date().toDateString())
     }
+  }],
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
+  }
 },
-    {
-        timestamps: true
-    });
+  {
+    timestamps: true
+  });
 
 // PropertySchema.pre('save', function (next) {
 //     const user = this;
@@ -71,11 +78,11 @@ const PropertySchema = Schema({
 // });
 
 PropertySchema.pre('save', async function (next) {
-    if (this.isNew) {
-        this.balance = this.price - this.totalReceivedAmount;
-        this.history.push({ amount: this.totalReceivedAmount });
-    }
-    return next();
+  if (this.isNew) {
+    this.balance = this.price - this.totalReceivedAmount;
+    this.history.push({ amount: this.totalReceivedAmount });
+  }
+  return next();
 });
 
 // update
@@ -90,22 +97,37 @@ PropertySchema.pre('save', async function (next) {
 //     this.cost = total;
 // });
 
-PropertySchema.methods.credit = async function (amount) {
-    if (amount === 0) {
-        return this;
+PropertySchema.methods.credit = async function (params) {
+  const { amount, nextDueDate } = params;
+  console.log(params);
+  if (amount === 0) {
+    return this;
+  }
+  return Property.findByIdAndUpdate(this.id, {
+    totalReceivedAmount: this.totalReceivedAmount + amount,
+    balance: this.balance - amount,
+    nextDueDate,
+    $push: {
+      history: {
+        $each: [{
+          amount
+        }],
+        $position: 0
+      },
     }
-    return this.update({
-        totalReceivedAmount: this.totalReceivedAmount + amount,
-        balance: this.balance - amount,
-        $push: {
-            history: {
-                $each: [{
-                    amount
-                }],
-                $position: 0
-            },
-        }
-    });
+  }, { new: true, runValidators: true });
+  // this.update({
+  //   totalReceivedAmount: this.totalReceivedAmount + amount,
+  //   balance: this.balance - amount,
+  //   $push: {
+  //     history: {
+  //       $each: [{
+  //         amount
+  //       }],
+  //       $position: 0
+  //     },
+  //   }
+  // }, { new: true, runValidators: true });
 }
 
 // PropertySchema.methods.reEval = async function () {
