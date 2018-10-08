@@ -3,7 +3,7 @@ import Property from '../models/property';
 import unirest from 'unirest';
 import AWS from 'aws-sdk';
 
-export function stripString(str){
+export function stripString(str) {
     return str.replace(/\s\s+/g, ' ');
 }
 export function fastSend(args) {
@@ -22,7 +22,7 @@ export function fastSend(args) {
         // "flash": "1"
     });
 
-    req.end(function (res) {
+    req.end(function(res) {
         if (res.error) {
             console.log(res.body, res.error);
         }
@@ -34,7 +34,7 @@ export function fastSend(args) {
 }
 
 export function way2sms(args) {
-    const { to, msg } = args;    
+    const { to, msg } = args;
     const req = unirest("POST", "https://smsapi.engineeringtgr.com/send/");
     const userid = "9984432113";
     const password = "@Iamvsquare909";
@@ -48,7 +48,7 @@ export function way2sms(args) {
         Key: apiKey
     });
 
-    req.end(function (res) {
+    req.end(function(res) {
         if (res.error) {
             // console.log(res.body, res.error);
         }
@@ -77,19 +77,19 @@ export function awsSns(args) {
             'DefaultSenderID': 'CODMTR',
             'DefaultSMSType': 'Transactional'
         }
-    }, function (err, data) {
+    }, function(err, data) {
         if (err) console.log(err, err.stack); // an error occurred
         else console.log(data);           // successful response
     });
-    sns.publish(params, function (err, data) {
+    sns.publish(params, function(err, data) {
         if (err) console.log(err, err.stack); // an error occurred
         else console.log(data);           // successful response
     });
 }
-export default async function () {
+export default async function() {
     let result = await Properties.all({
         query: {
-            nextDueDate: new Date((function () {
+            nextDueDate: new Date((function() {
                 const now = new Date();
                 const y = now.getFullYear();
                 const m = now.getMonth() + 1;
@@ -99,9 +99,11 @@ export default async function () {
                     (d < 10 ? "0" + d : d);
             })())
         }
-    });
-    console.log("Due Documents: ", result.length);
+    });    
     for (const e of result) {
+        if (e.toObject().balance === 0) {            
+            continue;
+        }
         const admin = {
             to: "",
             msg: "",
@@ -120,7 +122,7 @@ export default async function () {
         Balance: Rs. ${e.price - e.totalReceivedAmount}
         ${e.note.length ? `Note: ${e.note}` : ""}
         `);
-        awsSns({ to: e.buyerNumber, msg });
+        // awsSns({ to: e.buyerNumber, msg });
 
         admin.msg += stripString(`                
         Property name: ${e.name}.
@@ -131,7 +133,7 @@ export default async function () {
         Balance: Rs. ${e.price - e.totalReceivedAmount}
         ${e.note.length ? `Note: ${e.note}` : ""}
         `);
-        awsSns(admin);
+        // awsSns(admin);
     };
     return true;
 }

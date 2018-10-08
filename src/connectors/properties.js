@@ -47,6 +47,11 @@ const typeDefs = `
         nextDueDate: String!
         note: String
     }
+
+    input PropertyCreditInput {
+        amount: Float!
+        nextDueDate: String!
+    }
 `;
 
 // Queries allowed in graphql
@@ -98,7 +103,7 @@ const MutationSchema = `
     createProperty(data: PropertyInput!): Property
     updateProperty(id: String!, data: PropertyUpdateInput!): Property
     deleteProperty(id: String!): Property    
-    propertyCredit(id: String!, amount: Float!): PropertyCreditHistory
+    propertyCredit(id: String!, data: PropertyCreditInput!): PropertyCreditHistory
 `;
 
 // Mutation resolvers
@@ -114,9 +119,9 @@ const RootMutation = {
         return Properties.update({ id, ...data });
     }),
     deleteProperty: isAdmin.createResolver((_, args) => Properties.remove(args)),
-    propertyCredit: isAdmin.createResolver(async (_, { id, amount }) => {
+    propertyCredit: isAdmin.createResolver(async (_, { id, data }) => {
         let property = await Properties.find({ id });
-        await property.credit(amount);
+        await property.credit(data);
         return await (await Properties.find({ id })).toObject().history[0];
         // return property.history[0];
     })

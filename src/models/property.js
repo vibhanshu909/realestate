@@ -47,7 +47,7 @@ const PropertySchema = Schema({
     amount: Number,
     createdAt: {
       type: Date,
-      default: new Date(new Date().toDateString())
+      default: () => new Date(new Date().toDateString())
     }
   }],
   owner: {
@@ -97,13 +97,16 @@ PropertySchema.pre('save', async function (next) {
 //     this.cost = total;
 // });
 
-PropertySchema.methods.credit = async function (amount) {
+PropertySchema.methods.credit = async function (params) {
+  const { amount, nextDueDate } = params;
+  console.log(params);
   if (amount === 0) {
     return this;
   }
-  return this.update({
+  return Property.findByIdAndUpdate(this.id, {
     totalReceivedAmount: this.totalReceivedAmount + amount,
     balance: this.balance - amount,
+    nextDueDate,
     $push: {
       history: {
         $each: [{
@@ -112,7 +115,19 @@ PropertySchema.methods.credit = async function (amount) {
         $position: 0
       },
     }
-  }, { new: true });
+  }, { new: true, runValidators: true });
+  // this.update({
+  //   totalReceivedAmount: this.totalReceivedAmount + amount,
+  //   balance: this.balance - amount,
+  //   $push: {
+  //     history: {
+  //       $each: [{
+  //         amount
+  //       }],
+  //       $position: 0
+  //     },
+  //   }
+  // }, { new: true, runValidators: true });
 }
 
 // PropertySchema.methods.reEval = async function () {
