@@ -22,6 +22,9 @@ mutation createSite($data: SiteInput!) {
         id,
         name,
         location,
+        entries {
+            id
+        },
         entryCount,
         count
         manager {
@@ -30,7 +33,7 @@ mutation createSite($data: SiteInput!) {
         }
         managerSpentAmount,
         cost
-        total{
+        total {
             mistri ${siteTotalRepeater}
             labour ${siteTotalRepeater}
             eit ${siteTotalRepeater}
@@ -55,6 +58,9 @@ mutation updateSite($id: String!, $data: SiteUpdateInput!) {
         id,
         name,
         location,
+        entries {
+            id
+        },
         entryCount,
         manager {
             id,

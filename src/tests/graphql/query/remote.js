@@ -48,6 +48,7 @@ export const USERS_USERNAME = `
         users(limit: $limit, skip: $skip) {
             id
             username
+            siteCount
         }
     }
 `;
