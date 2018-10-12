@@ -10,9 +10,8 @@
         "seed": "babel-watch ./src/models/seeds/user.js",
         "fake-seed": "babel-watch ./src/models/seeds/fake.js",
         "dev-seed": "babel-watch ./src/models/seeds/dev_user.js",
-        "test-seed": "node ./dist/models/seeds/test_user.js",
+        "test-seed": "babel-watch ./src/models/seeds/test_user.js",
         "dev-test": "babel-watch ./src/models/test.js",
-        
         "test": "ENV=testing jest ./src/tests",
         "migrate": "node ./dist/models/migrate/05_10_2018_reval.js",
         "dev-migrate": "babel-watch ./src/models/migrate/05_10_2018_reval.js"
