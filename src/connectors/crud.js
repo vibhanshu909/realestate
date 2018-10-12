@@ -22,10 +22,10 @@ export default function (model) {
             return model.findByIdAndUpdate(id, rest, { new: true, runValidators: validate });
         },
 
-        remove: async function ({ ids }) {                        
+        remove: async function ({ ids }) {
             try {
                 ids.forEach(async (e) => {
-                    await model.findOneAndRemove({ _id: e }, (err, item) => item.remove());
+                    await model.findOneAndRemove({ _id: e }, async (err, item) => await item.remove());
                 })
             } catch (error) {
 

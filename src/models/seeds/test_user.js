@@ -1,4 +1,4 @@
-import User, { ROLES } from '../user';
+import { User, ROLES } from '../user';
 
 export default async function seed() {
     console.log("Seeding...");

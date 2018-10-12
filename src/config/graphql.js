@@ -4,7 +4,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import jwt from 'jsonwebtoken';
 
 import config from './main';
-import User from '../models/user';
+import {User} from '../models/user';
 
 import Users from '../connectors/users';
 import Sites from '../connectors/sites';

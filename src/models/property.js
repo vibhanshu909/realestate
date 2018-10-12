@@ -35,8 +35,7 @@ const PropertySchema = Schema({
   nextDueDate: {
     type: Date,
     validate: {
-      validator: (val) => {
-        console.log("value is: ", val);
+      validator: function (val) {        
         return Date.now() <= new Date(val)
       },
       message: props => `${props.value} must be in future`
@@ -98,8 +97,7 @@ PropertySchema.pre('save', async function (next) {
 // });
 
 PropertySchema.methods.credit = async function (params) {
-  const { amount, nextDueDate } = params;
-  console.log(params);
+  const { amount, nextDueDate } = params;  
   if (amount === 0) {
     return this;
   }

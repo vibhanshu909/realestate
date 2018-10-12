@@ -1,5 +1,7 @@
 import { mongoose } from '../config/main';
 import { Users } from '../connectors/users';
+import { SiteEntries } from '../connectors/siteEntries';
+import { Sites } from '../connectors/sites';
 
 var Schema = mongoose.Schema;
 
@@ -74,9 +76,8 @@ SiteSchema.methods.reEval = async function () {
     site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
     this.update({ managerSpentAmount });
 }
-async function totalHook(_) {
-    console.log("totalHook called")
-    let total = 0;
+async function totalHook(_) {    
+    let cost = 0, managerSpentAmount =0;
     const site = await Site.populate(this, 'entries');
     const { entries } = site.toObject();
     const newTotal = {
@@ -120,19 +121,19 @@ async function totalHook(_) {
         other2: 0,
     };
     entries.forEach(e => {
-        const {_id, total: t, other, other2, managerSpentAmount, site, createdAt, updatedAt, __v, ...data} = e;
-        total += t;
+        const {_id, total: t, other, other2, managerSpentAmount: msa, site, createdAt, updatedAt, __v, ...data} = e;
+        cost += t;
+        managerSpentAmount += msa;
         newTotal.other += other.cost;
         newTotal.other2 += other2.cost;
-        Object.keys(data).map(x => {
-            console.log(x);
+        Object.keys(data).map(x => {            
             newTotal[x].quantity += e[x].quantity;
             newTotal[x].cost += e[x].cost;
         })
-    });
-    console.log(newTotal);
+    });    
     this.total = newTotal;
-    this.cost = total;
+    this.cost = cost;
+    this.managerSpentAmount = managerSpentAmount;
 }
 
 // save
@@ -150,10 +151,13 @@ SiteSchema.post('update', async function () {
 });
 
 SiteSchema.post('remove', async function (doc) {    
+    await SiteEntries.remove({ids: doc.entries});
     let user = await Users.find({ id: doc.manager });
-    await user.reEval();
-    user.sites.pull(doc.id);
-    user.save();
+    if(user){
+        await user.reEval();
+        user.sites.pull(doc.id);
+        await user.save();
+    }
 });
 
 SiteSchema.methods.toClient = function(){

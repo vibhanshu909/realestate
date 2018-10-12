@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User, { ROLES } from '../models/user';
+import { User, ROLES } from '../models/user';
 import config from '../config/main';
 import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager } from '../config/permissions';
@@ -82,8 +82,8 @@ const RootQuery = {
     users: isAdmin.createResolver(async (_, args, ctx) => {
         ctx.data = {
             count: await User.countDocuments(),
-        };
-        return Users.all({ ...args, query: { role: { $ne: ROLES.ADMIN } } })
+        };        
+        return Users.all({ ...args, query: { role: { $ne: ROLES.ADMIN } } });
     }),
     userCreditHistory: isManager.createResolver(async (_, args, ctx) => {
         const { id, skip, limit } = args;
@@ -133,7 +133,7 @@ const TypeResolvers = {
 const MutationSchema = `
     createUser(data: UserInput!): User
     updateUser(id: String!, data: UserInput!): User
-    deleteUser(id: String!): User
+    deleteUsers(ids: [String!]!): Status
     login(data: LoginInput!): Login
     credit(id: String!, amount: Float!): UserCreditHistory!
     updateUserContact(id: String!, contact: Float!): User
@@ -155,7 +155,10 @@ const RootMutation = {
         };
         return Users.update({ id, ...data });
     }),
-    deleteUser: isAdmin.createResolver((_, args) => Users.remove(args)),
+    deleteUsers: isAdmin.createResolver(async (_, args) => {
+        await Users.remove(args);
+        return { status: true };
+    }),
     login: (_, { data }) => Users.login(data),
     credit: isAdmin.createResolver(async (_, { id, amount }) => {
         let user = await Users.find({ id });

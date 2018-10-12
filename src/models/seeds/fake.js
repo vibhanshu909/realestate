@@ -1,7 +1,8 @@
 import '../../config/main';
-import User, { ROLES } from '../user';
+import { User, ROLES } from '../user';
 import Property from '../property';
-import { Site, SiteEntry } from '../site';
+import { Site } from '../site';
+import { SiteEntries } from '../../connectors/siteEntries';
 import faker from 'faker';
 
 async function seed() {
@@ -15,7 +16,7 @@ async function seed() {
                 buyer: faker.name.findName(),
                 buyerNumber: Number(faker.phone.phoneNumberFormat().split("-").join("")),
                 totalRecievedAmount: faker.commerce.price(),
-                nextDueDate: faker.date.future()            
+                nextDueDate: faker.date.future()
             });
             const user = await User.create({
                 username: faker.name.findName(),
@@ -25,10 +26,10 @@ async function seed() {
                 name: faker.commerce.productName(),
                 location: faker.address.city(),
                 manager: user.id,
-                entries: await Promise.all(new Array(600).fill(0).map((e, i) => SiteEntry.create({ mistri: { quantity: i, cost: i } })))
+                entries: await Promise.all(new Array(600).fill(0).map((e, i) => SiteEntries.create({ mistri: { quantity: i, cost: i } })))
             });
             user.sites.push(site);
-            user.save();
+            await user.save();
         }
     } catch (e) {
         console.log(e);

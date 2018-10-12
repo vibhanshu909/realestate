@@ -1,5 +1,5 @@
 import '../../config/main';
-import User, { ROLES } from '../user';
+import { User, ROLES } from '../user';
 // import faker from 'faker';
 
 async function seed(){
