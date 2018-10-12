@@ -124,11 +124,7 @@ const RootMutation = {
     return Site.populate(await Sites.update({ id, ...data }), { path: "manager" });
   }),
   deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
-    if (args.ids.length) {
-      const site = await Sites.find({ id: args.ids[0] });
-      const user = await Users.find({ id: site.manager });
-      args.ids.map(id => user.sites.pull(id));
-      await user.save();
+    if (args.ids.length) {      
       await Sites.remove(args);
       return { status: true }
     }
