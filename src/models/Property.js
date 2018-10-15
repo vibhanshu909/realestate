@@ -69,7 +69,7 @@ PropertySchema.pre('save', async function (next) {
 
 
 PropertySchema.pre('remove', async function () {
-  const { __v, createdAt, updatedAt, ...data } = this.toObject();
+  const { __v, ...data } = this.toObject();
   await DeletedProperty.create(data);
 });
 // update

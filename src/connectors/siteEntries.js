@@ -78,12 +78,12 @@ const QuerySchema = `
 // Query resolvers
 const TypeResolvers = {
   SiteEntry: {
-    site: isManager.createResolver(async (_, args, ctx) => {
+    site: async (_, args, ctx) => {
       if (ctx.data) {
         return ctx.data.site;
       }
       Sites.find({ id: _.site })
-    })
+    }
   }
 };
 

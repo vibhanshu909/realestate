@@ -52,7 +52,11 @@ export const SchemaObject = {
   sites: [{
     type: Schema.Types.ObjectId,
     ref: "Site"
-  }]
+  }],
+  deletedAt: {
+    type: Date,
+    default: Date.now
+  }
 };
 
 const UserSchema = Schema(SchemaObject, {

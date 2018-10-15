@@ -70,7 +70,7 @@ SiteEntrySchema.pre('findOneAndUpdate', function (next) {
 });
 
 SiteEntrySchema.pre('remove', async function () {
-  const { __v, createdAt, updatedAt, ...data } = this.toObject();
+  const { __v, ...data } = this.toObject();
   await DeletedSiteEntry.create(data);
 });
 

@@ -2,7 +2,7 @@ import { ROLES } from '../models/User';
 import Activity from '../models/Activity';
 
 const logger = async (_, args, ctx, info, result) => {  
-  if (ctx.user && !ctx.expired && info.operation.operation === 'mutation' && result) {
+  if (ctx.user && !ctx.expired && info.operation.operation === 'mutation' && result) {    
     await Activity.create({
       user: ctx.user,
       activity: info.operation.name.value,

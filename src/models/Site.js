@@ -151,7 +151,7 @@ SiteSchema.post('update', async function () {
 });
 
 SiteSchema.pre('remove', async function() {
-  const { __v, createdAt, updatedAt, ...data } = this.toObject();
+  const { __v, ...data } = this.toObject();
   await DeletedSite.create(data);
 });
 
