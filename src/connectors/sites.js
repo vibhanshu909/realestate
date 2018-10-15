@@ -1,6 +1,6 @@
-import { Site } from '../models/site';
+import { Site } from '../models/Site';
 import { isAdmin, isManager } from '../config/permissions';
-import { ROLES } from '../models/user';
+import { ROLES } from '../models/User';
 import crud from './crud';
 import { Users } from './users';
 

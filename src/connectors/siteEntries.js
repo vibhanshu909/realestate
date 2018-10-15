@@ -1,5 +1,5 @@
-import { Site } from '../models/site';
-import { SiteEntry } from '../models/siteEntry';
+import { Site } from '../models/Site';
+import { SiteEntry } from '../models/SiteEntry';
 import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
 import { getDate } from '../utils/date';
@@ -132,7 +132,7 @@ const RootMutation = {
         }
       });
       if (entries.length) {
-        throw new Error("Already Done for today")
+        throw new Error("Might already be done")
       }
     }
     const site = await Sites.find({ id: siteId });
@@ -155,12 +155,18 @@ const RootMutation = {
     return entry;
   }),
   deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {
+    console.log("deleteSiteEntries");
     if (args.ids.length) {
       let site = await Sites.find({ id: args.siteId });
-      args.ids.map(id => site.entries.pull(id));      
+      args.ids.map(id => site.entries.pull(id));
       await site.save();
-      await SiteEntries.remove(args.ids);
+      console.log("about to remove");
+      await SiteEntries.remove(args);
+      console.log("removed");
       return { status: true };
+    }
+    else {
+      console.log("else");
     }
     return { status: false };
   }),

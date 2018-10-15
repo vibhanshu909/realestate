@@ -1,4 +1,4 @@
-import Property from '../models/property';
+import Property from '../models/Property';
 import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';

@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build": "rimraf ./dist && babel -d ./dist ./src",
+        "build": "rimraf ./dist && babel -d ./dist ./src --watch --source-maps",
         "start": "babel-watch src/index.js",
         "start-pro": "npm run build && pm2 restart all",
         "seed": "babel-watch ./src/models/seeds/user.js",

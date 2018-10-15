@@ -1,4 +1,5 @@
 import { mongoose } from '../config/main';
+import DeletedProperty from './Deleted/Property';
 
 var Schema = mongoose.Schema;
 
@@ -35,7 +36,7 @@ const PropertySchema = Schema({
   nextDueDate: {
     type: Date,
     validate: {
-      validator: function (val) {        
+      validator: function (val) {
         return Date.now() <= new Date(val)
       },
       message: props => `${props.value} must be in future`
@@ -58,24 +59,6 @@ const PropertySchema = Schema({
     timestamps: true
   });
 
-// PropertySchema.pre('save', function (next) {
-//     const user = this;
-//     if (user.isModified("password") || user.isNew) {
-//         return bcrypt.genSalt(10, function (err, salt) {
-//             if (err) {
-//                 return next(err);
-//             }
-//             bcrypt.hash(user.password, salt, function (err, hash) {
-//                 user.password = hash;
-//                 return next();
-//             });
-//         });
-//     }
-//     else {
-//         return next();
-//     }
-// });
-
 PropertySchema.pre('save', async function (next) {
   if (this.isNew) {
     this.balance = this.price - this.totalReceivedAmount;
@@ -84,6 +67,11 @@ PropertySchema.pre('save', async function (next) {
   return next();
 });
 
+
+PropertySchema.pre('remove', async function () {
+  const { __v, createdAt, updatedAt, ...data } = this.toObject();
+  await DeletedProperty.create(data);
+});
 // update
 // PropertySchema.pre('update', async function (doc) {
 //     if(this.balance !== 0 ){
@@ -97,7 +85,7 @@ PropertySchema.pre('save', async function (next) {
 // });
 
 PropertySchema.methods.credit = async function (params) {
-  const { amount, nextDueDate } = params;  
+  const { amount, nextDueDate } = params;
   if (amount === 0) {
     return this;
   }

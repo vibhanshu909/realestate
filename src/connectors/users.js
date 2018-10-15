@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User, ROLES } from '../models/user';
+import { User, ROLES } from '../models/User';
 import config from '../config/main';
 import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager } from '../config/permissions';

@@ -1,4 +1,4 @@
-import { ROLES } from '../models/user';
+import { ROLES } from '../models/User';
 import Activity from '../models/Activity';
 
 const logger = async (_, args, ctx, info, result) => {  

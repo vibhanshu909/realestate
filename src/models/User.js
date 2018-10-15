@@ -1,5 +1,6 @@
 import { mongoose } from '../config/main';
 import bcrypt from 'bcrypt';
+import DeletedUser from './Deleted/User';
 
 var Schema = mongoose.Schema;
 
@@ -8,7 +9,7 @@ export const ROLES = {
   MANAGER: 0,
 };
 
-const UserSchema = Schema({
+export const SchemaObject = {
   username: {
     type: String,
     lowercase: true,
@@ -50,19 +51,14 @@ const UserSchema = Schema({
       default: () => new Date(new Date().toDateString())
     }
   }],
-  // account: {
-  //     type: Schema.Types.ObjectId,
-  //     ref: "Account",        
-  // },    
   sites: [{
     type: Schema.Types.ObjectId,
     ref: "Site"
-  }],
-
-},
-  {
-    timestamps: true
-  });
+  }]
+};
+const UserSchema = Schema(SchemaObject, {
+  timestamps: true
+});
 
 export async function getHash(str) {
   try {
@@ -100,9 +96,20 @@ UserSchema.pre('save', async function (next) {
   return next();
 });
 
+UserSchema.pre('remove', async function () {
+  console.log(this.toObject());
+  const { __v, createdAt, updatedAt, ...data } = this.toObject();
+  await DeletedUser.create(data);
+});
+
 UserSchema.post('remove', async function (doc) {
   const { Sites } = await import('../connectors/sites');
-  await Sites.remove({ ids: doc.sites });
+  if(doc.sites && doc.sites.length){
+    try {
+      await Sites.remove({ ids: doc.sites });    
+    } catch (error) {
+    }
+  }
 });
 
 UserSchema.methods.isAdmin = function () {
