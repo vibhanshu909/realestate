@@ -26,7 +26,7 @@ const SchemaObject = {
   },
   manager: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'DeletedUser',
     required: true,
   },
   managerSpentAmount: {
@@ -34,7 +34,7 @@ const SchemaObject = {
     min: 0,
     default: 0,
   },
-  entries: [{ type: Schema.Types.ObjectId, ref: 'SiteEntries' }],
+  entries: [{ type: Schema.Types.ObjectId, ref: 'DeletedSiteEntry' }],
   cost: {
     type: Number,
     min: 0,

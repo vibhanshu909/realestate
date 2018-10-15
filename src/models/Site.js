@@ -18,7 +18,7 @@ const totalRepeater = {
   }
 };
 
-export const SchemaObject = {
+const SiteSchema = Schema({
   name: {
     type: String,
     unique: true,
@@ -65,10 +65,9 @@ export const SchemaObject = {
       default: 0
     }
   }
-}
-const SiteSchema = Schema(SchemaObject, {
-  timestamps: true
-});
+}, {
+    timestamps: true
+  });
 
 SiteSchema.methods.reEval = async function () {
   const site = await Site.populate(this, 'entries');
@@ -150,7 +149,7 @@ SiteSchema.post('update', async function () {
   return (await Users.find({ id: this.manager })).reEval();
 });
 
-SiteSchema.pre('remove', async function() {
+SiteSchema.pre('remove', async function () {
   const { __v, ...data } = this.toObject();
   await DeletedSite.create(data);
 });

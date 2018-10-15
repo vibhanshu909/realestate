@@ -51,7 +51,7 @@ export const SchemaObject = {
   }],
   sites: [{
     type: Schema.Types.ObjectId,
-    ref: "Site"
+    ref: "DeletedSite"
   }],
   deletedAt: {
     type: Date,

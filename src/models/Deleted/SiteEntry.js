@@ -29,7 +29,7 @@ const SchemaObject = {
     paid: { type: Boolean, default: false }
   },
   total: { type: Number, default: 0, min: 0.00 },
-  site: { type: Schema.Types.ObjectId, ref: 'Site' },
+  site: { type: Schema.Types.ObjectId, ref: 'DeletedSite' },
   managerSpentAmount: { type: Number, default: 0, min: 0.00 },
   deletedAt: {
     type: Date,

@@ -1,4 +1,5 @@
-import { User, ROLES } from '../user';
+import { User, ROLES } from '../User';
+import Site from '../Site';
 
 async function seed() {
     console.log("Seeding...");

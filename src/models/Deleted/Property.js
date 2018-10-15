@@ -44,7 +44,7 @@ const SchemaObject = {
   }],
   owner: {
     type: Schema.Types.ObjectId,
-    ref: "User"
+    ref: "DeletedUser"
   },
   deletedAt: {
     type: Date,
