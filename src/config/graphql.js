@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser';
 import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
+import GraphQLJSON from 'graphql-type-json';
 import { makeExecutableSchema } from 'graphql-tools';
 import jwt from 'jsonwebtoken';
 
@@ -10,10 +11,12 @@ import Users from '../connectors/users';
 import Sites from '../connectors/sites';
 import SiteEntries from '../connectors/siteEntries';
 import Properties from '../connectors/properties';
+import Activities from '../connectors/activities';
 import Metrics from '../connectors/metric';
 
 export default function (app) {
   const typeDefs = `        
+        scalar JSON
         type Status {
             status: Boolean!
         }
@@ -22,6 +25,7 @@ export default function (app) {
         ${Sites.typeDefs}
         ${SiteEntries.typeDefs}
         ${Properties.typeDefs}
+        ${Activities.typeDefs}
         ${Metrics.typeDefs}
 
         # the schema allows the following query:
@@ -30,6 +34,7 @@ export default function (app) {
             ${Sites.QuerySchema}
             ${SiteEntries.QuerySchema}
             ${Properties.QuerySchema}
+            ${Activities.QuerySchema}
             ${Metrics.QuerySchema}
         }
 
@@ -39,6 +44,7 @@ export default function (app) {
             ${Sites.MutationSchema}
             ${SiteEntries.MutationSchema}
             ${Properties.MutationSchema}
+            ${Activities.MutationSchema}
             ${Metrics.MutationSchema}
         }
     `;
@@ -48,6 +54,7 @@ export default function (app) {
       Sites.RootQuery,
       SiteEntries.RootQuery,
       Properties.RootQuery,
+      Activities.RootQuery,
       Metrics.RootQuery,
     ),
     Mutation: Object.assign({},
@@ -55,13 +62,16 @@ export default function (app) {
       Sites.RootMutation,
       SiteEntries.RootMutation,
       Properties.RootMutation,
+      Activities.RootMutation,
       Metrics.RootMutation,
     ),
+    JSON: GraphQLJSON,
   },
     Users.TypeResolvers,
     Sites.TypeResolvers,
     SiteEntries.TypeResolvers,
     Properties.TypeResolvers,
+    Activities.TypeResolvers,
     Metrics.TypeResolvers,
   );
 

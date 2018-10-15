@@ -2,6 +2,12 @@ import { mongoose } from '../config/main';
 
 var Schema = mongoose.Schema;
 
+// export const OPERATION = {
+//   CREATE: 0,
+//   UPDATE: 1,
+//   DELETE: 2,  
+// };
+
 const ActivitySchema = Schema({
   user: {
     type: Schema.Types.ObjectId,
