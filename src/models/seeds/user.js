@@ -1,6 +1,5 @@
 import '../../config/main';
-import { User, ROLES } from '../user';
-// import faker from 'faker';
+import { User, ROLES } from '../User';
 
 async function seed(){
     console.log("Seeding...");

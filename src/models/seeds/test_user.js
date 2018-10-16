@@ -1,6 +1,6 @@
 import { mongoose } from '../../config/main';
-import { Site } from '../site';
-import { User, ROLES } from '../user';
+import { Site } from '../Site';
+import { User, ROLES } from '../User';
 
 async function seed() {
     console.log("Seeding...");

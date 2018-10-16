@@ -1,7 +1,7 @@
 import '../../config/main';
-import { User, ROLES } from '../user';
-import Property from '../property';
-import { Site } from '../site';
+import { User, ROLES } from '../User';
+import Property from '../Property';
+import { Site } from '../Site';
 import { SiteEntries } from '../../connectors/siteEntries';
 import faker from 'faker';
 

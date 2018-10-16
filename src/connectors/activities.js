@@ -26,9 +26,9 @@ const QuerySchema = `
 // Query resolvers
 
 const RootQuery = {
-  activities: isAdmin.createResolver((_, args, ctx) => {
+  activities: isAdmin.createResolver(async (_, args, ctx) => {
     ctx.data = {
-      count: Activity.countDocuments(),
+      count: await Activity.countDocuments(),
     };
     return Activities.all({ ...args, query: {} }).populate('user');
   }),
