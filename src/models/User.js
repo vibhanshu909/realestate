@@ -96,8 +96,7 @@ UserSchema.pre('save', async function (next) {
   return next();
 });
 
-UserSchema.pre('remove', async function () {
-  console.log(this.toObject());
+UserSchema.pre('remove', async function () {  
   const { __v, ...data } = this.toObject();
   await DeletedUser.create(data);
 });

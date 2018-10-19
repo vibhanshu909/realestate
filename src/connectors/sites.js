@@ -49,6 +49,7 @@ const typeDefs = `
     input SiteUpdateInput {
         name: String!
         location: String!        
+        manager: String!
     }
 `;
 
@@ -115,9 +116,9 @@ const MutationSchema = `
 const RootMutation = {
   createSite: isAdmin.createResolver(async (_, { data }, ctx) => {
     let site = await Sites.create(data);
-    const user = await Users.find({ id: data.manager });
-    user.sites.push(site);
-    user.save();
+    // const user = await Users.find({ id: data.manager });
+    // user.sites.push(site);
+    // user.save();
     return Site.populate(site, { path: "manager" });
   }),
   updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {

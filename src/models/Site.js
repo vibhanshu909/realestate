@@ -1,5 +1,6 @@
 import { mongoose } from '../config/main';
 import { Users } from '../connectors/users';
+import { Sites } from '../connectors/sites';
 import { SiteEntries } from '../connectors/siteEntries';
 import DeletedSite from './Deleted/Site';
 
@@ -75,7 +76,7 @@ SiteSchema.methods.reEval = async function () {
   site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
   this.update({ managerSpentAmount });
 }
-async function totalHook(_) {
+async function totalHook(_) {  
   let cost = 0, managerSpentAmount = 0;
   const site = await Site.populate(this, 'entries');
   const { entries } = site.toObject();
@@ -120,7 +121,7 @@ async function totalHook(_) {
     other2: 0,
   };
   entries.forEach(e => {
-    const { _id, total: t, other, other2, managerSpentAmount: msa, site, createdAt, updatedAt, __v, ...data } = e;
+    const { _id, total: t, by: b, other, other2, managerSpentAmount: msa, site, createdAt, updatedAt, __v, ...data } = e;
     cost += t;
     managerSpentAmount += msa;
     newTotal.other += other.cost;
@@ -142,11 +143,39 @@ SiteSchema.post('save', async function () {
   return (await Users.find({ id: this.manager })).reEval();
 });
 
-// update
-SiteSchema.pre('update', totalHook);
+async function updateUser() {  
+  const user = await Users.find({ id: this.manager });
+  const i = user.sites.findIndex(s => String(s) === String(this.id));
+  if (i > -1) {
+  }
+  else {
+    user.sites.push(this);
+  }
+  return await user.save();
+}
+SiteSchema.post('save', updateUser);
 
-SiteSchema.post('update', async function () {
-  return (await Users.find({ id: this.manager })).reEval();
+SiteSchema.pre('findOneAndUpdate', async function () {  
+  const { $set, $setOnInsert, ...rest } = this._update;  
+  const site = await Sites.find({ id: rest.id });
+  if (String(rest.manager) === String(site.manager)) {    
+    return;
+  }
+  const user = await Users.find({ id: site.manager });
+  user.sites.pull(site);
+  return await user.save();
+});
+
+SiteSchema.post('findOneAndUpdate', async function () {
+  const user = await Users.find({ id: this._update.manager });
+  const i = user.sites.findIndex(s => String(s) === String(this._update.id));
+  if (i > -1) {    
+  }
+  else {
+    user.sites.push(this._update.id);
+  }
+  await user.save();  
+  return (await Users.find({ id: this._update.manager })).reEval();
 });
 
 SiteSchema.pre('remove', async function () {
@@ -163,14 +192,5 @@ SiteSchema.post('remove', async function (doc) {
     await user.save();
   }
 });
-
-SiteSchema.methods.toClient = function () {
-  var obj = this.toObject();
-  //Rename fields
-  obj.id = obj._id;
-  // delete obj._id;
-
-  return obj;
-}
 
 export const Site = mongoose.model("Site", SiteSchema);
