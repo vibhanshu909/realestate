@@ -3,6 +3,7 @@ import { isAdmin, isManager } from '../config/permissions';
 import { ROLES } from '../models/User';
 import crud from './crud';
 import { Users } from './users';
+import SiteTotal from '../models/SiteTotal';
 
 export const Sites = crud(Site);
 
@@ -12,6 +13,7 @@ const typeDefs = `
       cost: Float!
     }
     type SiteTotal {
+        manager: User!
         mistri: SiteTotalField!
         labour: SiteTotalField!
         eit: SiteTotalField!
@@ -33,7 +35,7 @@ const typeDefs = `
         managerSpentAmount: Float!
         cost: Float!
         entries: [SiteEntry!]
-        total: SiteTotal!
+        total: [SiteTotal!]!
         count: Int!        
         createdAt: String!
         updatedAt: String!
@@ -80,10 +82,21 @@ const RootQuery = {
     const { user } = ctx;
     let result;
     if (user.role == ROLES.ADMIN) {
-      result = await Promise.resolve(Sites.all(args).populate('manager'));
+      result = await Sites.all(args).populate('manager').populate({
+        path: 'total',
+        populate: {
+          path: 'manager'
+        }
+      });
     }
     else {
-      result = await Sites.all({ query: { _id: { $in: user.sites } }, ...args }).populate('manager');
+      result = await Sites.all({ query: { _id: { $in: user.sites } }, ...args }).populate('manager').populate({
+        path: 'total',
+        populate: {
+          path: 'manager'
+        }
+      });
+      console.log(result);
       ctx.data = { count: user.sites.length };
     }
     return result;
@@ -92,11 +105,21 @@ const RootQuery = {
     ctx.data = { count: Site.countDocuments() };
     const { user } = ctx;
     if (user.role == ROLES.ADMIN) {
-      return Sites.find(args).populate('manager');
+      return Sites.find(args).populate('manager').populate({
+        path: 'total',
+        populate: {
+          path: 'manager'
+        }
+      });
     }
     else {
       if (user.sites.find(e => String(e) === args.id)) {
-        return Sites.find(args).populate('manager');
+        return Sites.find(args).populate('manager').populate({
+          path: 'total',
+          populate: {
+            path: 'manager'
+          }
+        });
       }
       else {
         throw new Error("Site doesn't belong to user");
@@ -119,24 +142,30 @@ const RootMutation = {
     // const user = await Users.find({ id: data.manager });
     // user.sites.push(site);
     // user.save();
-    return Site.populate(site, { path: "manager" });
+    console.log("site Created");
+    site = await Site.populate(site, { path: "manager" })
+    site = await Site.populate(site, {
+      path: 'total',
+      populate: {
+        path: 'manager'
+      }
+    });
+    // SiteTotal.populate(site.total, {
+    //   path: 'manager'
+    // });
+    console.log(site);
+    return site;
   }),
   updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
     return Site.populate(await Sites.update({ id, ...data }), { path: "manager" });
   }),
   deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
-    if (args.ids.length) {      
+    if (args.ids.length) {
       await Sites.remove(args);
       return { status: true }
     }
     return { status: false }
   }),
 }
-
-// const SchemaDirectives = {
-//     auth: AuthDirective,
-//     authorized: AuthDirective,
-//     authenticated: AuthDirective,
-// };
 
 export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, TypeResolvers };

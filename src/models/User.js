@@ -160,10 +160,18 @@ UserSchema.methods.credit = async function (amount) {
 }
 
 async function reEval(doc) {
+  console.log("User.reEval called");
   const user = await User.populate(doc, 'sites');
+  console.log(user);
   let managerSpentAmount = 0;
-  user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
-  return { spent: managerSpentAmount, balance: doc.totalReceivedAmount - managerSpentAmount };
+  user.sites.forEach(e => {
+    if(user.id === e.by) {
+      managerSpentAmount += e.managerSpentAmount;
+    }
+  });
+  const result = { spent: managerSpentAmount, balance: doc.totalReceivedAmount - managerSpentAmount };
+  console.log(result);
+  return result;
 }
 
 UserSchema.methods.reEval = async function () {
