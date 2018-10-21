@@ -106,9 +106,9 @@ const RootQuery = {
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createSite(data: SiteInput!): Site
-    updateSite(id: String!, data: SiteUpdateInput!): Site
-    deleteSites(ids: [String!]!): Status    
+  createSite(data: SiteInput!): Site!
+  updateSite(id: String!, data: SiteUpdateInput!): Site!
+  deleteSites(ids: [String!]!): Status!
 `;
 
 // Mutation resolvers

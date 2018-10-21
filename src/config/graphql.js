@@ -11,6 +11,7 @@ import Users from '../connectors/users';
 import Sites from '../connectors/sites';
 import SiteEntries from '../connectors/siteEntries';
 import Properties from '../connectors/properties';
+import StockItems from '../connectors/stocks';
 import Activities from '../connectors/activities';
 import Metrics from '../connectors/metric';
 
@@ -25,6 +26,7 @@ export default function (app) {
         ${Sites.typeDefs}
         ${SiteEntries.typeDefs}
         ${Properties.typeDefs}
+        ${StockItems.typeDefs}
         ${Activities.typeDefs}
         ${Metrics.typeDefs}
 
@@ -34,6 +36,7 @@ export default function (app) {
             ${Sites.QuerySchema}
             ${SiteEntries.QuerySchema}
             ${Properties.QuerySchema}
+            ${StockItems.QuerySchema}
             ${Activities.QuerySchema}
             ${Metrics.QuerySchema}
         }
@@ -44,6 +47,7 @@ export default function (app) {
             ${Sites.MutationSchema}
             ${SiteEntries.MutationSchema}
             ${Properties.MutationSchema}
+            ${StockItems.MutationSchema}
             ${Activities.MutationSchema}
             ${Metrics.MutationSchema}
         }
@@ -54,6 +58,7 @@ export default function (app) {
       Sites.RootQuery,
       SiteEntries.RootQuery,
       Properties.RootQuery,
+      StockItems.RootQuery,
       Activities.RootQuery,
       Metrics.RootQuery,
     ),
@@ -62,6 +67,7 @@ export default function (app) {
       Sites.RootMutation,
       SiteEntries.RootMutation,
       Properties.RootMutation,
+      StockItems.RootMutation,
       Activities.RootMutation,
       Metrics.RootMutation,
     ),
@@ -71,6 +77,7 @@ export default function (app) {
     Sites.TypeResolvers,
     SiteEntries.TypeResolvers,
     Properties.TypeResolvers,
+    StockItems.TypeResolvers,
     Activities.TypeResolvers,
     Metrics.TypeResolvers,
   );
