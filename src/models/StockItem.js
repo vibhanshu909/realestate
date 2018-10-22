@@ -31,5 +31,4 @@ const StockItemSchema = Schema({
     timestamps: true
   });
 
-const StockItem = mongoose.model("StockItem", StockItemSchema);
-export default StockItem;
+export const StockItem = mongoose.model("StockItem", StockItemSchema);

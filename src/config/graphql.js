@@ -13,6 +13,7 @@ import SiteEntries from '../connectors/siteEntries';
 import Properties from '../connectors/properties';
 import StockItems from '../connectors/stocks';
 import StockSuppliers from '../connectors/stockSuppliers';
+import StockItemTransactions from '../connectors/stockItemTransactions';
 import Activities from '../connectors/activities';
 import Metrics from '../connectors/metric';
 
@@ -29,6 +30,7 @@ export default function (app) {
   ${Properties.typeDefs}
   ${StockItems.typeDefs}
   ${StockSuppliers.typeDefs}
+  ${StockItemTransactions.typeDefs}
   ${Activities.typeDefs}
   ${Metrics.typeDefs}
 
@@ -40,6 +42,7 @@ export default function (app) {
     ${Properties.QuerySchema}
     ${StockItems.QuerySchema}
     ${StockSuppliers.QuerySchema}
+    ${StockItemTransactions.QuerySchema}
     ${Activities.QuerySchema}
     ${Metrics.QuerySchema}
   }
@@ -52,6 +55,7 @@ export default function (app) {
     ${Properties.MutationSchema}
     ${StockItems.MutationSchema}
     ${StockSuppliers.MutationSchema}
+    ${StockItemTransactions.MutationSchema}
     ${Activities.MutationSchema}
     ${Metrics.MutationSchema}
   }
@@ -64,6 +68,7 @@ export default function (app) {
       Properties.RootQuery,
       StockItems.RootQuery,
       StockSuppliers.RootQuery,
+      StockItemTransactions.RootQuery,
       Activities.RootQuery,
       Metrics.RootQuery,
     ),
@@ -74,6 +79,7 @@ export default function (app) {
       Properties.RootMutation,
       StockItems.RootMutation,
       StockSuppliers.RootMutation,
+      StockItemTransactions.RootMutation,
       Activities.RootMutation,
       Metrics.RootMutation,
     ),
@@ -85,6 +91,7 @@ export default function (app) {
     Properties.TypeResolvers,
     StockItems.TypeResolvers,
     StockSuppliers.TypeResolvers,
+    StockItemTransactions.TypeResolvers,
     Activities.TypeResolvers,
     Metrics.TypeResolvers,
   );

@@ -1,6 +1,6 @@
 import crud from './crud';
-import StockItem from '../models/StockItem';
-import StockItemTransaction from '../models/StockItemTransaction';
+import { StockItem } from '../models/StockItem';
+import { StockItemTransaction } from '../models/StockItemTransaction';
 import { isAdmin, isManager } from '../config/permissions';
 
 export const StockItems = crud(StockItem);
@@ -9,10 +9,11 @@ export const StockItemTransactions = crud(StockItemTransaction);
 const typeDefs = `
   type StockItem {
     id: ID!
-    count: Int!
     name: String!
     unit: String!
     available: Float!
+    count: Int!
+    transactionCount: Int!
     createdAt: String!
     updatedAt: String!
   }
@@ -20,12 +21,6 @@ const typeDefs = `
     name: String!
     unit: String!
     available: Float!
-  }
-  type StockItemTransaction {
-    stockItem: StockItem!
-    quantity: Float!
-    type: String!
-    supplier: StockSupplier!
   }
 `;
 

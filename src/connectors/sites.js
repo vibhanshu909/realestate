@@ -42,7 +42,7 @@ const typeDefs = `
     input SiteInput {
         name: String!
         location: String!
-        manager: String!
+        manager: ID!
         createdAt: String!
     }
 

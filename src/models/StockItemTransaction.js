@@ -1,4 +1,6 @@
 import { mongoose } from '../config/main';
+import { StockItems } from '../connectors/stocks';
+import { StockSuppliers } from '../connectors/stockSuppliers';
 
 var Schema = mongoose.Schema;
 
@@ -31,5 +33,13 @@ const StockItemTransactionSchema = Schema({
     timestamps: true
   });
 
-const StockItemTransaction = mongoose.model("StockItemTransaction", StockItemTransactionSchema);
-export default StockItemTransaction;
+StockItemTransactionSchema.post('save', async function () {
+  const stockItem = await StockItems.find({id: this.stockItem});
+  const supplier = await StockSuppliers.find({id: this.supplier});
+  stockItem.transaction.push(this);
+  await stockItem.save();
+  supplier.transaction.push(this);
+  await supplier.save();
+});
+
+export const StockItemTransaction = mongoose.model("StockItemTransaction", StockItemTransactionSchema);
