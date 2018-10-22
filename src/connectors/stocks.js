@@ -21,6 +21,12 @@ const typeDefs = `
     unit: String!
     available: Float!
   }
+  type StockItemTransaction {
+    stockItem: StockItem!
+    quantity: Float!
+    type: String!
+    supplier: StockSupplier!
+  }
 `;
 
 // Queries allowed in graphql

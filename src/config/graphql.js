@@ -12,46 +12,50 @@ import Sites from '../connectors/sites';
 import SiteEntries from '../connectors/siteEntries';
 import Properties from '../connectors/properties';
 import StockItems from '../connectors/stocks';
+import StockSuppliers from '../connectors/stockSuppliers';
 import Activities from '../connectors/activities';
 import Metrics from '../connectors/metric';
 
 export default function (app) {
   const typeDefs = `        
-        scalar JSON
-        type Status {
-            status: Boolean!
-        }
-        
-        ${Users.typeDefs}
-        ${Sites.typeDefs}
-        ${SiteEntries.typeDefs}
-        ${Properties.typeDefs}
-        ${StockItems.typeDefs}
-        ${Activities.typeDefs}
-        ${Metrics.typeDefs}
+  scalar JSON
+  type Status {
+    status: Boolean!
+  }
 
-        # the schema allows the following query:
-        type Query {
-            ${Users.QuerySchema}
-            ${Sites.QuerySchema}
-            ${SiteEntries.QuerySchema}
-            ${Properties.QuerySchema}
-            ${StockItems.QuerySchema}
-            ${Activities.QuerySchema}
-            ${Metrics.QuerySchema}
-        }
+  ${Users.typeDefs}
+  ${Sites.typeDefs}
+  ${SiteEntries.typeDefs}
+  ${Properties.typeDefs}
+  ${StockItems.typeDefs}
+  ${StockSuppliers.typeDefs}
+  ${Activities.typeDefs}
+  ${Metrics.typeDefs}
 
-        # this schema allows the following mutation:
-        type Mutation {
-            ${Users.MutationSchema}
-            ${Sites.MutationSchema}
-            ${SiteEntries.MutationSchema}
-            ${Properties.MutationSchema}
-            ${StockItems.MutationSchema}
-            ${Activities.MutationSchema}
-            ${Metrics.MutationSchema}
-        }
-    `;
+  # the schema allows the following query:
+  type Query {
+    ${Users.QuerySchema}
+    ${Sites.QuerySchema}
+    ${SiteEntries.QuerySchema}
+    ${Properties.QuerySchema}
+    ${StockItems.QuerySchema}
+    ${StockSuppliers.QuerySchema}
+    ${Activities.QuerySchema}
+    ${Metrics.QuerySchema}
+  }
+
+  # this schema allows the following mutation:
+  type Mutation {
+    ${Users.MutationSchema}
+    ${Sites.MutationSchema}
+    ${SiteEntries.MutationSchema}
+    ${Properties.MutationSchema}
+    ${StockItems.MutationSchema}
+    ${StockSuppliers.MutationSchema}
+    ${Activities.MutationSchema}
+    ${Metrics.MutationSchema}
+  }
+`;
   const resolvers = Object.assign({}, {
     Query: Object.assign({},
       Users.RootQuery,
@@ -59,6 +63,7 @@ export default function (app) {
       SiteEntries.RootQuery,
       Properties.RootQuery,
       StockItems.RootQuery,
+      StockSuppliers.RootQuery,
       Activities.RootQuery,
       Metrics.RootQuery,
     ),
@@ -68,6 +73,7 @@ export default function (app) {
       SiteEntries.RootMutation,
       Properties.RootMutation,
       StockItems.RootMutation,
+      StockSuppliers.RootMutation,
       Activities.RootMutation,
       Metrics.RootMutation,
     ),
@@ -78,6 +84,7 @@ export default function (app) {
     SiteEntries.TypeResolvers,
     Properties.TypeResolvers,
     StockItems.TypeResolvers,
+    StockSuppliers.TypeResolvers,
     Activities.TypeResolvers,
     Metrics.TypeResolvers,
   );
