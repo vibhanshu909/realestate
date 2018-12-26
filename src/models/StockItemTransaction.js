@@ -34,11 +34,36 @@ const StockItemTransactionSchema = Schema({
   });
 
 StockItemTransactionSchema.post('save', async function () {
-  const stockItem = await StockItems.find({id: this.stockItem});
-  const supplier = await StockSuppliers.find({id: this.supplier});
+  console.log("StockItemTransaction pre save");
+  const stockItem = await StockItems.find({ id: this.stockItem });
+  const supplier = await StockSuppliers.find({ id: this.supplier });
   stockItem.transaction.push(this);
   await stockItem.save();
+  stockItem.reEval();
   supplier.transaction.push(this);
+  await supplier.save();
+});
+
+StockItemTransactionSchema.pre('findOneAndUpdate', async function () {
+  console.log("StockItemTransaction pre save");
+  const { $set, $setOnInsert, ...rest } = this._update;
+  const stockItem = await StockItems.find({ id: this.stockItem });
+  const supplier = await StockSuppliers.find({ id: this.supplier });
+  stockItem.transaction.pull(this);
+  await stockItem.save();
+  stockItem.reEval();
+  supplier.transaction.pull(this);
+  await supplier.save();
+});
+
+StockItemTransactionSchema.post('findOneAndUpdate', async function () {
+  console.log("StockItemTransaction post save");
+  const stockItem = await StockItems.find({ id: this.stockItem });
+  const supplier = await StockSuppliers.find({ id: this.supplier });
+  stockItem.transaction.pull(this);
+  await stockItem.save();
+  stockItem.reEval();
+  supplier.transaction.pull(this);
   await supplier.save();
 });
 
