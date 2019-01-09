@@ -44,7 +44,7 @@ const typeDefs = `
     input SiteInput {
         name: String!
         location: String!
-        manager: String!
+        manager: ID!
         createdAt: String!
     }
 
@@ -130,9 +130,9 @@ const RootQuery = {
 
 // Mutations allowed in graphql
 const MutationSchema = `
-    createSite(data: SiteInput!): Site
-    updateSite(id: String!, data: SiteUpdateInput!): Site
-    deleteSites(ids: [String!]!): Status    
+  createSite(data: SiteInput!): Site!
+  updateSite(id: String!, data: SiteUpdateInput!): Site!
+  deleteSites(ids: [String!]!): Status!
 `;
 
 // Mutation resolvers

@@ -6,7 +6,7 @@
     "scripts": {
         "build": "rimraf ./dist && babel -d ./dist ./src --source-maps",
         "start": "babel-watch src/index.js",
-        "start-pro": "npm run build && pm2 restart all",
+        "start-pro": "npm run build && node dist/index.js",
         "seed": "babel-watch ./src/models/seeds/user.js",
         "fake-seed": "babel-watch ./src/models/seeds/fake.js",
         "dev-seed": "babel-watch ./src/models/seeds/dev_user.js",
@@ -24,7 +24,7 @@
         "apollo-server-express": "^1.4.0",
         "aws-sdk": "^2.324.0",
         "babel-runtime": "^6.26.0",
-        "bcrypt": "^3.0.0",
+        "bcryptjs": "^2.4.3",
         "body-parser": "^1.18.2",
         "dataloader": "^1.4.0",
         "elastic-apm-node": "^1.5.4",

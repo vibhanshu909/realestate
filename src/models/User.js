@@ -1,5 +1,5 @@
 import { mongoose } from '../config/main';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import DeletedUser from './Deleted/User';
 
 var Schema = mongoose.Schema;

@@ -10,10 +10,10 @@ const app = express();
 
 app.use(logger('dev'));
 
-var whitelist = ['https://kka.easylucknow.com']
+var whitelist = ['*', 'https://kka.easylucknow.com']
 var corsOptions = {
   origin: function (origin, callback) {
-    if (whitelist.includes(origin) !== -1) {
+    if (!origin || whitelist.includes('*') || whitelist.includes(origin)) {
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
