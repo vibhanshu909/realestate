@@ -19,5 +19,8 @@ services:
     build: .
     links:
       - mongo:mongo
+    volumes:
+      - .:/app
+    command: "npm start"
 volumes:
   mongo-datavolume:
