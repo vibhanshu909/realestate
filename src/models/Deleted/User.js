@@ -1,4 +1,4 @@
-import { mongoose } from '../../config/main';
+import mongoose from '../../config/db';
 // import { SchemaObject } from '../User';
 
 var Schema = mongoose.Schema;

@@ -132,7 +132,7 @@ const RootMutation = {
         }
       });
       if (entries.length) {
-        throw new Error("Might already be done")
+        throw new Error("Not allowed")
       }
     }
     const site = await Sites.find({ id: siteId });

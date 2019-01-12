@@ -1,4 +1,4 @@
-import { mongoose } from '../config/main';
+import mongoose from '../config/db';
 import DeletedSiteEntry from './Deleted/SiteEntry';
 
 const Schema = mongoose.Schema;

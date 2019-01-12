@@ -1,19 +1,28 @@
+import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
 import bodyParser from 'body-parser';
-import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
-import GraphQLJSON from 'graphql-type-json';
 import { makeExecutableSchema } from 'graphql-tools';
+import GraphQLJSON from 'graphql-type-json';
 import jwt from 'jsonwebtoken';
-
-import config from './main';
-import { User } from '../models/User';
-
-import Users from '../connectors/users';
-import Sites from '../connectors/sites';
-import SiteEntries from '../connectors/siteEntries';
-import Properties from '../connectors/properties';
 import Activities from '../connectors/activities';
 import Metrics from '../connectors/metric';
+import Properties from '../connectors/properties';
+import SiteEntries from '../connectors/siteEntries';
+import Sites from '../connectors/sites';
+import Users from '../connectors/users';
+import { User } from '../models/User';
 
+export async function verifyToken(token) {
+  let user, expired
+  try {
+    const obj = await jwt.verify(token, process.env.SECRET, {
+      maxAge: "1y"
+    });
+    user = await User.findOne({ _id: obj.id });
+  } catch (e) {
+    expired = true;
+  }
+  return { user: user || null, expired: expired || false }
+}
 export default function (app) {
   const typeDefs = `        
         scalar JSON
@@ -83,21 +92,20 @@ export default function (app) {
   });
   // The GraphQL endpoint
   app.use('/graphql', bodyParser.json(), graphqlExpress(async (req) => {
-    const context = {
+    let context = {
+      req,
       user: req.user || null,
       expired: false,
     };
-    // console.log(req.headers);
+    console.log(req.headers);
     if (req.headers.authorization) {
       const token = req.headers.authorization;
-      try {
-        const obj = await jwt.verify(token, config.secret, {
-          maxAge: "1y"
-        });
-        context.user = await User.findOne({ _id: obj.id });
-      } catch (e) {
-        context.expired = true;
+      console.log(token)
+      context = {
+        ...context,
+        ...await verifyToken(token)
       }
+      console.log(context)
     }
     else {
       req.user = null;

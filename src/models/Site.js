@@ -1,4 +1,4 @@
-import { mongoose } from '../config/main';
+import mongoose from '../config/db';
 import { Users } from '../connectors/users';
 import { SiteEntries } from '../connectors/siteEntries';
 import DeletedSite from './Deleted/Site';
