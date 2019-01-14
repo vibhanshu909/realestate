@@ -41,9 +41,9 @@ const PORT = process.env.PORT;
 
   app.disable('x-powered-by');
 
-  const staticFolder = "build/";
-  app.use(express.static(staticFolder));
-  app.use('*', express.static(staticFolder));
+  // const staticFolder = "build/";
+  // app.use(express.static(staticFolder));
+  // app.use('*', express.static(staticFolder));
 
   cron.schedule("0 6 * * *", async function () {
     console.log("running task 06:00 AM");
