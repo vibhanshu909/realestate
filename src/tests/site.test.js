@@ -73,7 +73,8 @@ describe('site', () => {
     const uIndex = Math.ceil((Math.random() * 100)) % users.length;
     const inputData = {
       name: faker.commerce.productName(),
-      location: faker.address.streetName(),      
+      location: faker.address.streetName(),
+      manager: users[uIndex].id
     };
     const { data: { data: { updateSite }, error } } = await request({
       query: UPDATE_SITE,
@@ -94,8 +95,8 @@ describe('site', () => {
       entries: [],
       entryCount: 0,
       manager: {
-        id: site.manager.id,
-        name: site.manager.name
+        id: users[uIndex].id,
+        name: users[uIndex].username
       },
       managerSpentAmount: 0,
       cost: 0,

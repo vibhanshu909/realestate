@@ -31,6 +31,7 @@ const SiteEntrySchema = Schema({
   },
   total: { type: Number, default: 0, min: 0.00 },
   site: { type: Schema.Types.ObjectId, ref: 'Site' },
+  by: { type: Schema.Types.ObjectId, ref: 'User' },
   managerSpentAmount: { type: Number, default: 0, min: 0.00 }
 },
   {
@@ -47,19 +48,33 @@ function getTotal(entry) {
   }
   return { total, managerSpentAmount };
 }
-SiteEntrySchema.pre('save', function (next) {
-  const { _id, site, createdAt, updatedAt, total: _, managerSpentAmount: __, _v, __v, ...rest } = this.toObject();
-  const {
+SiteEntrySchema.pre('save', async function (next) {
+  const { _id,
+    site,
+    by,
+    createdAt,
+    updatedAt,
+    total: _,
+    managerSpentAmount:
+    __,
+    _v,
+    __v,
+    ...rest
+  } = (await SiteEntry
+    .populate(this, 'site')
+  ).toObject();  
+  const {		
     total,
     managerSpentAmount,
   } = getTotal(rest);
   this.total = total;
-  this.managerSpentAmount = managerSpentAmount;
+  this.managerSpentAmount = managerSpentAmount;  
+  this.by = await Users.find({ id: site.manager });  
   return next();
 });
 
 SiteEntrySchema.pre('findOneAndUpdate', function (next) {
-  const { $set, $setOnInsert, ...rest } = this._update;
+  const { $set, $setOnInsert, id, ...rest } = this._update;  
   const {
     total,
     managerSpentAmount,
