@@ -18,14 +18,17 @@ export default function (model) {
     },
 
     update: function (args, validate = true) {
-      // const { id, ...rest } = args;
-      return model.findByIdAndUpdate(args.id, args, { new: true, runValidators: validate });
+      const { id, ...rest } = args;
+      return model.findByIdAndUpdate(id, rest, { new: true, runValidators: validate });
     },
 
     remove: async function ({ ids }) {
-      try {        
-        ids.forEach(async (e) => {          
-          await model.findOneAndRemove({ _id: e }, async (err, item) => {            
+      try {
+        console.log("ids", ids);
+        ids.forEach(async (e) => {
+          console.log("calling findOneAndRemove", e);
+          await model.findOneAndRemove({ _id: e }, async (err, item) => {
+            console.log("calling item.remove");
             return item && await item.remove()
           });
         })

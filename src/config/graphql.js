@@ -25,56 +25,44 @@ export async function verifyToken(token) {
 }
 export default function (app) {
   const typeDefs = `        
-  scalar JSON
-  type Status {
-    status: Boolean!
-  }
+        scalar JSON
+        type Status {
+            status: Boolean!
+        }
+        
+        ${Users.typeDefs}
+        ${Sites.typeDefs}
+        ${SiteEntries.typeDefs}
+        ${Properties.typeDefs}
+        ${Activities.typeDefs}
+        ${Metrics.typeDefs}
 
-  ${Users.typeDefs}
-  ${Sites.typeDefs}
-  ${SiteEntries.typeDefs}
-  ${Properties.typeDefs}
-  ${StockItems.typeDefs}
-  ${StockSuppliers.typeDefs}
-  ${StockItemTransactions.typeDefs}
-  ${Activities.typeDefs}
-  ${Metrics.typeDefs}
+        # the schema allows the following query:
+        type Query {
+            ${Users.QuerySchema}
+            ${Sites.QuerySchema}
+            ${SiteEntries.QuerySchema}
+            ${Properties.QuerySchema}
+            ${Activities.QuerySchema}
+            ${Metrics.QuerySchema}
+        }
 
-  # the schema allows the following query:
-  type Query {
-    ${Users.QuerySchema}
-    ${Sites.QuerySchema}
-    ${SiteEntries.QuerySchema}
-    ${Properties.QuerySchema}
-    ${StockItems.QuerySchema}
-    ${StockSuppliers.QuerySchema}
-    ${StockItemTransactions.QuerySchema}
-    ${Activities.QuerySchema}
-    ${Metrics.QuerySchema}
-  }
-
-  # this schema allows the following mutation:
-  type Mutation {
-    ${Users.MutationSchema}
-    ${Sites.MutationSchema}
-    ${SiteEntries.MutationSchema}
-    ${Properties.MutationSchema}
-    ${StockItems.MutationSchema}
-    ${StockSuppliers.MutationSchema}
-    ${StockItemTransactions.MutationSchema}
-    ${Activities.MutationSchema}
-    ${Metrics.MutationSchema}
-  }
-`;
+        # this schema allows the following mutation:
+        type Mutation {
+            ${Users.MutationSchema}
+            ${Sites.MutationSchema}
+            ${SiteEntries.MutationSchema}
+            ${Properties.MutationSchema}
+            ${Activities.MutationSchema}
+            ${Metrics.MutationSchema}
+        }
+    `;
   const resolvers = Object.assign({}, {
     Query: Object.assign({},
       Users.RootQuery,
       Sites.RootQuery,
       SiteEntries.RootQuery,
       Properties.RootQuery,
-      StockItems.RootQuery,
-      StockSuppliers.RootQuery,
-      StockItemTransactions.RootQuery,
       Activities.RootQuery,
       Metrics.RootQuery,
     ),
@@ -83,9 +71,6 @@ export default function (app) {
       Sites.RootMutation,
       SiteEntries.RootMutation,
       Properties.RootMutation,
-      StockItems.RootMutation,
-      StockSuppliers.RootMutation,
-      StockItemTransactions.RootMutation,
       Activities.RootMutation,
       Metrics.RootMutation,
     ),
@@ -95,9 +80,6 @@ export default function (app) {
     Sites.TypeResolvers,
     SiteEntries.TypeResolvers,
     Properties.TypeResolvers,
-    StockItems.TypeResolvers,
-    StockSuppliers.TypeResolvers,
-    StockItemTransactions.TypeResolvers,
     Activities.TypeResolvers,
     Metrics.TypeResolvers,
   );

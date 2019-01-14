@@ -26,7 +26,6 @@ const typeDefs = `
     site: Site!
     managerSpentAmount: Float!
     total: Float!
-    by: User!
   }
 
   type SiteEntryOutput {
@@ -84,13 +83,7 @@ const TypeResolvers = {
         return ctx.data.site;
       }
       Sites.find({ id: _.site })
-    },
-    // by: async (_, args, ctx) => {
-    //   if (ctx.data) {
-    //     return ctx.data.site;
-    //   }
-    //   Sites.find({ id: _.site })
-    // }
+    }
   }
 };
 
@@ -103,16 +96,13 @@ const RootQuery = {
         limit,
         skip,
         sort: "-createdAt"
-      },
-      populate: {
-        path: 'by'
       }
     });
     ctx.data = { count: site.entries.length, site };
     return result.entries;
   }),
   siteEntry: isManager.createResolver(async (_, args, ctx) => {
-    return SiteEntries.find(args).populate("by");
+    return SiteEntries.find(args);
   })
 };
 
@@ -164,13 +154,19 @@ const RootMutation = {
     site.save();
     return entry;
   }),
-  deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {    
+  deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {
+    console.log("deleteSiteEntries");
     if (args.ids.length) {
       let site = await Sites.find({ id: args.siteId });
       args.ids.map(id => site.entries.pull(id));
-      await site.save();      
-      await SiteEntries.remove(args);      
+      await site.save();
+      console.log("about to remove");
+      await SiteEntries.remove(args);
+      console.log("removed");
       return { status: true };
+    }
+    else {
+      console.log("else");
     }
     return { status: false };
   }),
