@@ -39,9 +39,9 @@ const PORT = process.env.PORT;
 
   graphqlConfig(app);
 
-  const staticFolder = "build/";
-
   app.disable('x-powered-by');
+
+  const staticFolder = "build/";
   app.use(express.static(staticFolder));
   app.use('*', express.static(staticFolder));
 
