@@ -24,6 +24,8 @@ services:
       - mongo:mongo
     volumes:
       - .:/app
+    ports:
+      - "6000:6000"
     command: "npm run start:dev"
 volumes:
   mongo-datavolume:

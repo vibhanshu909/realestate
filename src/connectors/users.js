@@ -53,6 +53,9 @@ const typeDefs = `
         password: String!
         totalReceivedAmount: Float!
     }
+    input UserUpdateInput {
+        username: String!
+    }
     input LoginInput {
         username: String!
         password: String!     
@@ -135,7 +138,7 @@ const TypeResolvers = {
 // Mutations allowed in graphql
 const MutationSchema = `
     createUser(data: UserInput!): User
-    updateUser(id: String!, data: UserInput!): User
+    updateUser(id: ID!, data: UserUpdateInput!): User
     deleteUsers(ids: [String!]!): Status
     login(data: LoginInput!): Login
     credit(id: String!, amount: Float!): UserCreditHistory!
@@ -152,7 +155,7 @@ const RootMutation = {
         };
         return result;
     }),
-    updateUser: isManager.createResolver(async (_, { id, data }) => {
+    updateUser: isManager.createResolver(async (_, { id, data }, ctx) => {
         ctx.data = {
             count: await User.count({}),
         };
