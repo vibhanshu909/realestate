@@ -1,5 +1,5 @@
 import { Properties } from '../connectors/properties';
-import Property from '../models/property';
+import Property from '../models/Property';
 import unirest from 'unirest';
 import AWS from 'aws-sdk';
 

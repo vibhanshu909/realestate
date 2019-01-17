@@ -12,10 +12,13 @@ Desktop.ini
 .directory
 *~
 
+# IDE
+.vscode
 
 # npm
 node_modules
 package-lock.json
+*.env
 *.log
 *.gz
 

@@ -1,6 +1,6 @@
-import { Site } from '../models/site';
+import { Site } from '../models/Site';
 import { isAdmin, isManager } from '../config/permissions';
-import { ROLES } from '../models/user';
+import { ROLES } from '../models/User';
 import crud from './crud';
 import { Users } from './users';
 
@@ -93,7 +93,7 @@ const RootQuery = {
     if (user.role == ROLES.ADMIN) {
       return Sites.find(args).populate('manager');
     }
-    else {      
+    else {
       if (user.sites.find(e => String(e) === args.id)) {
         return Sites.find(args).populate('manager');
       }
@@ -113,7 +113,7 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-  createSite: isAdmin.createResolver(async (_, { data }, ctx) => {    
+  createSite: isAdmin.createResolver(async (_, { data }, ctx) => {
     let site = await Sites.create(data);
     const user = await Users.find({ id: data.manager });
     user.sites.push(site);
@@ -121,25 +121,14 @@ const RootMutation = {
     return Site.populate(site, { path: "manager" });
   }),
   updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
-    // return (await .populate('manager');
     return Site.populate(await Sites.update({ id, ...data }), { path: "manager" });
-    // const oldSite = await Sites.find({ id });
-    // console.log(data);
-    // if (oldSite.manager === data.manager) {
-    //     return Sites.update({ id, ...data });
-    // }
-    // const oldUser = await Users.find({ id: oldSite.manager });
-    // oldUser.sites.pull(id);
-    // const user = await Users.find({ id: data.manager });
-    // let result = await Sites.update({ id, ...data });
-    // user.sites.push(result);
-    // oldUser.save();
-    // user.save();
-    // return result;
   }),
   deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
-    await Sites.remove(args);
-    return { status: true }
+    if (args.ids.length) {      
+      await Sites.remove(args);
+      return { status: true }
+    }
+    return { status: false }
   }),
 }
 

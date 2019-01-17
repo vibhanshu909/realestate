@@ -1,5 +1,5 @@
 import '../../config/main';
-import {Site, SiteEntry} from '../site';
+import {Site, SiteEntry} from '../Site';
 
 async function seed(){
     console.log("Seeding...");

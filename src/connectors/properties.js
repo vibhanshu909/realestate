@@ -1,4 +1,4 @@
-import Property from '../models/property';
+import Property from '../models/Property';
 import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
@@ -102,7 +102,7 @@ const TypeResolvers = {
 const MutationSchema = `
     createProperty(data: PropertyInput!): Property
     updateProperty(id: String!, data: PropertyUpdateInput!): Property
-    deleteProperty(id: String!): Property    
+    deleteProperties(ids: [String!]!): Status
     propertyCredit(id: String!, data: PropertyCreditInput!): PropertyCreditHistory
 `;
 
@@ -118,7 +118,10 @@ const RootMutation = {
     updateProperty: isManager.createResolver(async (_, { id, data }) => {
         return Properties.update({ id, ...data });
     }),
-    deleteProperty: isAdmin.createResolver((_, args) => Properties.remove(args)),
+    deleteProperties: isAdmin.createResolver(async (_, args) => {
+        await Properties.remove(args);
+        return { status: true };
+    }),
     propertyCredit: isAdmin.createResolver(async (_, { id, data }) => {
         let property = await Properties.find({ id });
         await property.credit(data);

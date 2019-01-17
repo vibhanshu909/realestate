@@ -1,9 +1,10 @@
-import { Site } from '../models/site';
-import { SiteEntry } from '../models/siteEntry';
+import { Site } from '../models/Site';
+import { SiteEntry } from '../models/SiteEntry';
 import { isAdmin, isManager } from '../config/permissions';
 import crud from './crud';
+import { getDate } from '../utils/date';
+import { Sites } from './sites';
 
-export const Sites = crud(Site);
 export const SiteEntries = crud(SiteEntry);
 
 const typeDefs = `    
@@ -77,12 +78,12 @@ const QuerySchema = `
 // Query resolvers
 const TypeResolvers = {
   SiteEntry: {
-    site: isManager.createResolver(async (_, args, ctx) => {
+    site: async (_, args, ctx) => {
       if (ctx.data) {
         return ctx.data.site;
       }
       Sites.find({ id: _.site })
-    })
+    }
   }
 };
 
@@ -122,36 +123,52 @@ const MutationSchema = `
 // Mutation resolvers
 const RootMutation = {
   createSiteEntry: isManager.createResolver(async (_, { siteId, data }, ctx) => {
+    if (ctx.user.isManager()) {
+      const { createdAt } = data;
+      const entries = await SiteEntries.all({
+        query: {
+          site: await Sites.find({ id: siteId }),
+          createdAt: { $gte: new Date(getDate()) }
+        }
+      });
+      if (entries.length) {
+        throw new Error("Not allowed")
+      }
+    }
     const site = await Sites.find({ id: siteId });
     ctx.data = {
       site
     };
     const entry = await SiteEntries.create({ site: siteId, ...data });
     site.entries.unshift(entry);
-    // const { managerSpentAmount } = entry.toObject();
-    // Object.values(rest).forEach(e => managerSpentAmount += e.paid ? e.cost : 0)
-    site.managerSpentAmount += entry.toObject().managerSpentAmount;
     site.save();
     return entry;
   }),
   updateSiteEntry: isAdmin.createResolver(async (_, { siteId, id, data }, ctx) => {
     let site = Sites.find({ id: siteId });
-    let oldEntry = SiteEntries.find({ id });
-    let { managerSpentAmount } = (await oldEntry).toObject();
     let entry = await SiteEntries.update({ id, ...data });
     site = await site;
     ctx.data = {
       site
     };
-    site.managerSpentAmount += entry.toObject().managerSpentAmount - managerSpentAmount;
     site.save();
     return entry;
   }),
   deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {
-    let site = await Sites.find({ id: args.siteId });
-    await Promise.all(args.ids.map(id => site.entries.pull(id)));
-    await site.save();
-    return { status: true };
+    console.log("deleteSiteEntries");
+    if (args.ids.length) {
+      let site = await Sites.find({ id: args.siteId });
+      args.ids.map(id => site.entries.pull(id));
+      await site.save();
+      console.log("about to remove");
+      await SiteEntries.remove(args);
+      console.log("removed");
+      return { status: true };
+    }
+    else {
+      console.log("else");
+    }
+    return { status: false };
   }),
 }
 
