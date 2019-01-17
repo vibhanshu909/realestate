@@ -54,7 +54,11 @@ export const SchemaObject = {
   sites: [{
     type: Schema.Types.ObjectId,
     ref: "Site"
-  }]
+  }],
+  stockPermission: {
+    type: Boolean,
+    default: false,
+  }
 };
 const UserSchema = Schema(SchemaObject, {
   timestamps: true

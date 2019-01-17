@@ -40,6 +40,8 @@ const typeDefs = `
         createdAt: String!
         updatedAt: String!
         count: Int!
+        stockPermission: Boolean!
+        role: String!
     }
 
     type UserCreditHistory {
@@ -52,9 +54,11 @@ const typeDefs = `
         username: String!
         password: String!
         totalReceivedAmount: Float!
+        stockPermission: Boolean!
     }
     input UserUpdateInput {
         username: String!
+        stockPermission: Boolean!
     }
     input LoginInput {
         username: String!
