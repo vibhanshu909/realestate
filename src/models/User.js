@@ -46,6 +46,10 @@ export const SchemaObject = {
   },
   history: [{
     amount: Number,
+    note: {
+      type: String,
+      default: '',
+    },
     createdAt: {
       type: Date,
       default: () => new Date(new Date().toDateString())
@@ -146,7 +150,7 @@ UserSchema.methods.resetPassword = async function ({ newPassword }) {
   });
 };
 
-UserSchema.methods.credit = async function (amount) {
+UserSchema.methods.credit = async function (amount, note = '') {
   if (amount === 0) {
     return this;
   }
@@ -156,7 +160,8 @@ UserSchema.methods.credit = async function (amount) {
     $push: {
       history: {
         $each: [{
-          amount
+          amount,
+          note
         }],
         $position: 0
       },
