@@ -10,7 +10,6 @@ import SiteEntries from '../connectors/siteEntries';
 import Sites from '../connectors/sites';
 import Users from '../connectors/users';
 import { User } from '../models/User';
-import fetch from 'isomorphic-fetch'
 
 export async function verifyToken(token) {
   let user, expired
@@ -24,23 +23,6 @@ export async function verifyToken(token) {
   }
   return { user: user || null, expired: expired || false }
 }
-const stockServiceUrl = `http://${process.env.STOCK_SERVICE_HOST}:${process.env.STOCK_SERVICE_PORT}`;
-console.log(stockServiceUrl)
-const fetchGraphql = (headers) => async (query, variables = {}) => {
-  const result = await fetch(stockServiceUrl, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query,
-      variables
-    }),
-  }).then(_ => _.json())
-  return result
-};
-
 export default function (app) {
   const typeDefs = `        
         scalar JSON
@@ -115,17 +97,15 @@ export default function (app) {
       user: req.user || null,
       expired: false,
     };
-    let fun = null;
+    console.log(req.headers);
     if (req.headers.authorization) {
       const token = req.headers.authorization;
-      fun = fetchGraphql({
-        authorization: token,
-      })
+      console.log(token)
       context = {
         ...context,
-        ...await verifyToken(token),
-        fetchGraphql: fun,
+        ...await verifyToken(token)
       }
+      console.log(context)
     }
     else {
       req.user = null;

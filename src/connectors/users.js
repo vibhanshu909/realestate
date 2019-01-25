@@ -48,7 +48,6 @@ const typeDefs = `
         amount: Float!
         createdAt: String!
         count: Int!
-        note: String!
     }
 
     input UserInput {
@@ -146,7 +145,7 @@ const MutationSchema = `
     updateUser(id: ID!, data: UserUpdateInput!): User
     deleteUsers(ids: [String!]!): Status
     login(data: LoginInput!): Login
-    credit(id: String!, amount: Float!, note: String): UserCreditHistory!
+    credit(id: String!, amount: Float!): UserCreditHistory!
     updateUserContact(id: String!, contact: Float!): User
     updateUserPassword(id: String!, data: UserPasswordInput!): Status
 `;
@@ -171,9 +170,9 @@ const RootMutation = {
         return { status: true };
     }),
     login: (_, { data }) => Users.login(data),
-    credit: isAdmin.createResolver(async (_, { id, amount, note }) => {
+    credit: isAdmin.createResolver(async (_, { id, amount }) => {
         let user = await Users.find({ id });
-        await user.credit(amount, note);
+        await user.credit(amount);
         return await (await Users.find({ id })).toObject().history[0];
     }),
     updateUserContact: isManager.createResolver(async (_, { id, contact }) => {

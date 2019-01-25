@@ -41,14 +41,6 @@ const TypeResolvers = {
   Activity: {
     count: (_, args, ctx) => {
       return ctx.data.count;
-    },
-    user: (activity) => {
-      if(activity.user){
-        return activity.user
-      }
-      return {
-        username: `"Deleted User"`
-      }
     }
   }
 };

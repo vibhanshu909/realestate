@@ -26,7 +26,6 @@ const typeDefs = `
         amount: Float!
         createdAt: String!
         count: Int!
-        note: String!
     }
 
     input PropertyInput {
@@ -51,7 +50,6 @@ const typeDefs = `
 
     input PropertyCreditInput {
         amount: Float!
-        note: String
         nextDueDate: String!
     }
 `;

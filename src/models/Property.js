@@ -45,10 +45,6 @@ const PropertySchema = Schema({
   note: String,
   history: [{
     amount: Number,
-    note: {
-      type: String,
-      default: ''
-    },
     createdAt: {
       type: Date,
       default: () => new Date(new Date().toDateString())
@@ -89,7 +85,7 @@ PropertySchema.pre('remove', async function () {
 // });
 
 PropertySchema.methods.credit = async function (params) {
-  const { amount, nextDueDate, note } = params;
+  const { amount, nextDueDate } = params;
   if (amount === 0) {
     return this;
   }
@@ -100,8 +96,7 @@ PropertySchema.methods.credit = async function (params) {
     $push: {
       history: {
         $each: [{
-          amount,
-          note
+          amount
         }],
         $position: 0
       },
