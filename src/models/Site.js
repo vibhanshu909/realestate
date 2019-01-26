@@ -64,6 +64,10 @@ const SiteSchema = Schema({
       min: 0,
       default: 0
     }
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
   }
 }, {
     timestamps: true

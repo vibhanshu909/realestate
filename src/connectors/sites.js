@@ -3,6 +3,7 @@ import { isAdmin, isManager } from '../config/permissions';
 import { ROLES } from '../models/User';
 import crud from './crud';
 import { Users } from './users';
+import { SiteEntries } from './siteEntries';
 
 export const Sites = crud(Site);
 
@@ -37,6 +38,7 @@ const typeDefs = `
         count: Int!        
         createdAt: String!
         updatedAt: String!
+        lastEntryDate: String
     }
 
     input SiteInput {
@@ -69,6 +71,14 @@ const TypeResolvers = {
     },
     entryCount: (_, args, ctx) => {
       return _.entries.length
+    },
+    lastEntryDate: async (_) => {
+      console.log(_)
+      if(_.entries && _.entries.length){
+        const entryId = _.entries[0]
+        return (await SiteEntries.find({id: entryId})).createdAt
+      }
+      return null
     }
   }
 };
@@ -79,11 +89,41 @@ const RootQuery = {
     const { user } = ctx;
     let result;
     if (user.role == ROLES.ADMIN) {
-      result = await Promise.resolve(Sites.all(args).populate('manager'));
+      result = await Promise.resolve(Sites.all({
+        query: {
+          $or: [
+            {
+              isDeleted: false
+            },
+            {
+              isDeleted: null
+            }
+          ]
+        },
+        ...args,
+      }).populate('manager'));
+      const length = (await Sites.model.count({ $or: [{ isDeleted: false }, { isDeleted: null }] }))            
+            // return result.length
+      ctx.data = { count: length };
     }
     else {
-      result = await Sites.all({ query: { _id: { $in: user.sites } }, ...args }).populate('manager');
-      ctx.data = { count: user.sites.length };
+      result = await Sites.all({
+        query: {
+          _id: { $in: user.sites },
+          $or: [
+            {
+              isDeleted: false
+            },
+            {
+              isDeleted: null
+            }
+          ]
+        },
+        ...args,
+      }).populate('manager');
+      const length = (await Sites.model.count({ _id: { $in: user.sites }, $or: [{ isDeleted: false }, { isDeleted: null }] }))            
+      // ctx.data = { count: user.sites.length };
+      ctx.data = { count: result.length };
     }
     return result;
   }),
@@ -124,8 +164,13 @@ const RootMutation = {
     return Site.populate(await Sites.update({ id, ...data }), { path: "manager" });
   }),
   deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
-    if (args.ids.length) {      
-      await Sites.remove(args);
+    if (args.ids.length) {
+      // await Sites.remove(args);
+      args.ids.forEach(async e => {
+        const site = await Sites.find({ id: e })
+        site.isDeleted = true
+        site.save()
+      })
       return { status: true }
     }
     return { status: false }

@@ -183,12 +183,13 @@ const RootMutation = {
         data: {
           entries: variables,
           supplierId: site.manager._id,
+          supplierName: site.manager.username,
           siteName: site.name
         }
       })
     console.log("result ===", result)
-    if (result.data === null && result.errors) {
-      throw new Error("Stock not available")
+    if (!result.data && result.errors) {
+      throw new Error("Error from Stock, stock may be unavailable")
     }
     // Remote End
     const entry = await SiteEntries.create(payload);

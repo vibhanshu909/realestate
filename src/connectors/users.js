@@ -4,6 +4,8 @@ import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager, isAuth } from '../config/permissions';
 import crud from './crud';
 import { verifyToken } from '../config/graphql';
+import { Sites } from './sites'
+
 export const Users = crud(User);
 
 Users.login = async (params) => {
@@ -122,8 +124,9 @@ const TypeResolvers = {
         sites: async (_, args, ctx) => {
             return (await User.populate(_, 'sites')).sites;
         },
-        siteCount: (_, args, ctx) => {
-            return _.sites.length;
+        siteCount: async (_, args, ctx) => {
+            const result = (await Sites.model.find({ manager: _.id, $or: [{ isDeleted: false }, { isDeleted: null }] }))            
+            return result.length
         },
         totalSitesCost: async (_, args, ctx) => {
             const user = await User.populate(_, "sites");
