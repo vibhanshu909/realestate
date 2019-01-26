@@ -46,6 +46,8 @@ const typeDefs = `
 
     type UserCreditHistory {
         amount: Float!
+        type: String!
+        balance: Float
         createdAt: String!
         count: Int!
         note: String!
@@ -171,9 +173,9 @@ const RootMutation = {
         return { status: true };
     }),
     login: (_, { data }) => Users.login(data),
-    credit: isAdmin.createResolver(async (_, { id, amount, note }) => {
+    credit: isAdmin.createResolver(async (_, { id, ...rest }) => {
         let user = await Users.find({ id });
-        await user.credit(amount, note);
+        await user.credit(rest);
         return await (await Users.find({ id })).toObject().history[0];
     }),
     updateUserContact: isManager.createResolver(async (_, { id, contact }) => {

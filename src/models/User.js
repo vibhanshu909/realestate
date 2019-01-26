@@ -9,6 +9,11 @@ export const ROLES = {
   MANAGER: 0,
 };
 
+export const TRANSACTION_TYPE = {
+  DEBIT: 'DEBIT',
+  CREDIT: 'CREDIT',
+};
+
 export const SchemaObject = {
   username: {
     type: String,
@@ -46,6 +51,15 @@ export const SchemaObject = {
   },
   history: [{
     amount: Number,
+    type: {
+      type: String,
+      required: true,
+      enum: Object.values(TRANSACTION_TYPE),
+      default: TRANSACTION_TYPE.CREDIT
+    },
+    balance: {
+      type: Number
+    },
     note: {
       type: String,
       default: '',
@@ -112,9 +126,9 @@ UserSchema.pre('remove', async function () {
 
 UserSchema.post('remove', async function (doc) {
   const { Sites } = await import('../connectors/sites');
-  if(doc.sites && doc.sites.length){
+  if (doc.sites && doc.sites.length) {
     try {
-      await Sites.remove({ ids: doc.sites });    
+      await Sites.remove({ ids: doc.sites });
     } catch (error) {
     }
   }
@@ -150,7 +164,8 @@ UserSchema.methods.resetPassword = async function ({ newPassword }) {
   });
 };
 
-UserSchema.methods.credit = async function (amount, note = '') {
+UserSchema.methods.credit = async function (args) {
+  const { amount, note = '' } = args
   if (amount === 0) {
     return this;
   }
@@ -160,8 +175,33 @@ UserSchema.methods.credit = async function (amount, note = '') {
     $push: {
       history: {
         $each: [{
-          amount,
-          note
+          ...args,
+          note,
+          type: 'CREDIT',
+          balance: this.balance + amount,
+        }],
+        $position: 0
+      },
+    }
+  }, { new: true });
+}
+
+UserSchema.methods.debit = async function (args) {
+  const { amount, note = '' } = args
+  if (amount === 0) {
+    return this;
+  }
+  return this.update({
+    // totalReceivedAmount: this.totalReceivedAmount - amount,
+    balance: this.balance - amount,
+    spent: this.spent + amount,
+    $push: {
+      history: {
+        $each: [{
+          ...args,
+          note,
+          type: 'DEBIT',
+          balance: this.balance - amount
         }],
         $position: 0
       },

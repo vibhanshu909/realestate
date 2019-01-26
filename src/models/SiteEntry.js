@@ -31,7 +31,11 @@ const SiteEntrySchema = Schema({
   },
   total: { type: Number, default: 0, min: 0.00 },
   site: { type: Schema.Types.ObjectId, ref: 'Site' },
-  managerSpentAmount: { type: Number, default: 0, min: 0.00 }
+  managerSpentAmount: { type: Number, default: 0, min: 0.00 },
+  note: {
+    type: String,
+    default: ''
+  }
 },
   {
     timestamps: true
@@ -48,7 +52,7 @@ function getTotal(entry) {
   return { total, managerSpentAmount };
 }
 SiteEntrySchema.pre('save', function (next) {
-  const { _id, site, createdAt, updatedAt, total: _, managerSpentAmount: __, _v, __v, ...rest } = this.toObject();
+  const { _id, site, note, createdAt, updatedAt, total: _, managerSpentAmount: __, _v, __v, ...rest } = this.toObject();
   const {
     total,
     managerSpentAmount,
