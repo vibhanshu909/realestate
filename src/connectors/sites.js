@@ -167,8 +167,11 @@ const RootMutation = {
     if (args.ids.length) {
       // await Sites.remove(args);
       args.ids.forEach(async e => {
-        const site = await Sites.find({ id: e })
+        const site = await Site.populate(await Sites.find({ id: e }), 'manager')
         site.isDeleted = true
+        // await site.manager.debit({
+        //   amount: site
+        // })
         site.save()
       })
       return { status: true }

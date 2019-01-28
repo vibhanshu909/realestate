@@ -114,12 +114,12 @@ const MutationSchema = `
         siteId: String!,
         data: SiteEntryInput!
     ): SiteEntry
-    updateSiteEntry(
-        siteId: String!,
-        id: String!,
-        data: SiteEntryInput!
-    ): SiteEntry
-    deleteSiteEntries(siteId: String!, ids: [String!]!): Status
+    # updateSiteEntry(
+    #     siteId: String!,
+    #     id: String!,
+    #     data: SiteEntryInput!
+    # ): SiteEntry
+    # deleteSiteEntries(siteId: String!, ids: [String!]!): Status
 `;
 
 // Mutation resolvers
@@ -193,40 +193,40 @@ const RootMutation = {
     }
     // Remote End
     const entry = await SiteEntries.create(payload);
+    site.entries.unshift(entry);
+    await site.save();
     await site.manager.debit({
       amount: entry.managerSpentAmount,
       note: `For: "${site.name}"`
     })
-    site.entries.unshift(entry);
-    site.save();
     return entry;
   }),
-  updateSiteEntry: isAdmin.createResolver(async (_, { siteId, id, data }, ctx) => {
-    let site = Sites.find({ id: siteId });
-    let entry = await SiteEntries.update({ id, ...data });
-    site = await site;
-    ctx.data = {
-      site
-    };
-    site.save();
-    return entry;
-  }),
-  deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {
-    console.log("deleteSiteEntries");
-    if (args.ids.length) {
-      let site = await Sites.find({ id: args.siteId });
-      args.ids.map(id => site.entries.pull(id));
-      await site.save();
-      console.log("about to remove");
-      await SiteEntries.remove(args);
-      console.log("removed");
-      return { status: true };
-    }
-    else {
-      console.log("else");
-    }
-    return { status: false };
-  }),
+  // updateSiteEntry: isAdmin.createResolver(async (_, { siteId, id, data }, ctx) => {
+  //   let site = Sites.find({ id: siteId });
+  //   let entry = await SiteEntries.update({ id, ...data });
+  //   site = await site;
+  //   ctx.data = {
+  //     site
+  //   };
+  //   site.save();
+  //   return entry;
+  // }),
+  // deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {
+  //   console.log("deleteSiteEntries");
+  //   if (args.ids.length) {
+  //     let site = await Sites.find({ id: args.siteId });
+  //     args.ids.map(id => site.entries.pull(id));
+  //     await site.save();
+  //     console.log("about to remove");
+  //     await SiteEntries.remove(args);
+  //     console.log("removed");
+  //     return { status: true };
+  //   }
+  //   else {
+  //     console.log("else");
+  //   }
+  //   return { status: false };
+  // }),
 }
 
 // const SchemaDirectives = {

@@ -73,70 +73,74 @@ const SiteSchema = Schema({
     timestamps: true
   });
 
-SiteSchema.methods.reEval = async function () {
-  const site = await Site.populate(this, 'entries');
-  let managerSpentAmount = 0;
-  site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
-  this.update({ managerSpentAmount });
-}
+// SiteSchema.methods.reEval = async function () {
+//   const site = await Site.populate(this, 'entries');
+//   let managerSpentAmount = 0;
+//   site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
+//   this.update({ managerSpentAmount });
+// }
 async function totalHook(_) {
-  let cost = 0, managerSpentAmount = 0;
+  // let cost = 0, managerSpentAmount = 0;
   const site = await Site.populate(this, 'entries');
   const { entries } = site.toObject();
-  const newTotal = {
-    mistri: {
-      quantity: 0,
-      cost: 0
-    },
-    labour: {
-      quantity: 0,
-      cost: 0
-    },
-    eit: {
-      quantity: 0,
-      cost: 0
-    },
-    morang: {
-      quantity: 0,
-      cost: 0
-    },
-    baalu: {
-      quantity: 0,
-      cost: 0
-    },
-    githi: {
-      quantity: 0,
-      cost: 0
-    },
-    cement: {
-      quantity: 0,
-      cost: 0
-    },
-    saria: {
-      quantity: 0,
-      cost: 0
-    },
-    dust: {
-      quantity: 0,
-      cost: 0
-    },
-    other: 0,
-    other2: 0,
-  };
-  entries.forEach(e => {
-    const { _id, total: t, other, other2, note, managerSpentAmount: msa, site, createdAt, updatedAt, __v, ...data } = e;
-    cost += t;
-    managerSpentAmount += msa;
-    newTotal.other += other.cost;
-    newTotal.other2 += other2.cost;
-    Object.keys(data).map(x => {
-      newTotal[x].quantity += e[x].quantity;
-      newTotal[x].cost += e[x].cost;
-    })
-  });
-  this.total = newTotal;
-  this.cost = cost;
-  this.managerSpentAmount = managerSpentAmount;
+  // console.log('entries[0]==', entries[0])
+  // const newTotal = {
+  //   mistri: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   labour: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   eit: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   morang: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   baalu: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   githi: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   cement: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   saria: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   dust: {
+  //     quantity: 0,
+  //     cost: 0
+  //   },
+  //   other: 0,
+  //   other2: 0,
+  // };
+  // entries.forEach(e => {
+    const e = entries[0]
+    if(e){
+      const { _id, total: t, other, other2, note, managerSpentAmount: msa, site: __, createdAt, updatedAt, __v, ...data } = e;
+      this.cost += t;
+      this.managerSpentAmount += msa;
+      this.total.other += other.cost;
+      this.total.other2 += other2.cost;
+      Object.keys(data).map(x => {
+        this.total[x].quantity += e[x].quantity;
+        this.total[x].cost += e[x].cost;
+      })
+    }
+  // });
+  // this.total = newTotal;
+  // this.cost = cost;
+  // this.managerSpentAmount = managerSpentAmount;
 }
 
 // save
@@ -147,7 +151,7 @@ SiteSchema.pre('save', totalHook);
 // });
 
 // update
-SiteSchema.pre('update', totalHook);
+// SiteSchema.pre('findOneAndUpdate', totalHook);
 
 // SiteSchema.post('update', async function () {
 //   return (await Users.find({ id: this.manager })).reEval();

@@ -106,17 +106,21 @@ UserSchema.pre('save', async function (next) {
 UserSchema.pre('save', async function (next) {
   if (this.isNew) {
     this.balance = this.totalReceivedAmount;
-    this.history.push({ amount: this.totalReceivedAmount });
+    this.history.push({ 
+      amount: this.totalReceivedAmount,
+      balance: this.totalReceivedAmount,
+      note: `Initial Amount` 
+    });
   }
   return next();
 });
 
-UserSchema.pre('save', async function (next) {
-  const { spent, balance } = await reEval(this);
-  this.spent = spent;
-  this.balance = balance;
-  return next();
-});
+// UserSchema.pre('save', async function (next) {
+//   const { spent, balance } = await reEval(this);
+//   this.spent = spent;
+//   this.balance = balance;
+//   return next();
+// });
 
 UserSchema.pre('remove', async function () {
   console.log(this.toObject());
@@ -209,15 +213,15 @@ UserSchema.methods.debit = async function (args) {
   }, { new: true });
 }
 
-async function reEval(doc) {
-  const user = await User.populate(doc, 'sites');
-  let managerSpentAmount = 0;
-  user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
-  return { spent: managerSpentAmount, balance: doc.totalReceivedAmount - managerSpentAmount };
-}
+// async function reEval(doc) {
+//   const user = await User.populate(doc, 'sites');
+//   let managerSpentAmount = 0;
+//   user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
+//   return { spent: managerSpentAmount, balance: doc.totalReceivedAmount - managerSpentAmount };
+// }
 
-UserSchema.methods.reEval = async function () {
-  return this.update(await reEval(this));
-}
+// UserSchema.methods.reEval = async function () {
+//   return this.update(await reEval(this));
+// }
 
 export const User = mongoose.model("User", UserSchema);

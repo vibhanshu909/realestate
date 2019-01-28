@@ -62,16 +62,16 @@ SiteEntrySchema.pre('save', function (next) {
   return next();
 });
 
-SiteEntrySchema.pre('findOneAndUpdate', function (next) {
-  const { $set, $setOnInsert, ...rest } = this._update;
-  const {
-    total,
-    managerSpentAmount,
-  } = getTotal(rest);
-  this._update.total = total;
-  this._update.managerSpentAmount = managerSpentAmount;
-  return next();
-});
+// SiteEntrySchema.pre('findOneAndUpdate', function (next) {
+//   const { $set, $setOnInsert, ...rest } = this._update;
+//   const {
+//     total,
+//     managerSpentAmount,
+//   } = getTotal(rest);
+//   this._update.total = total;
+//   this._update.managerSpentAmount = managerSpentAmount;
+//   return next();
+// });
 
 SiteEntrySchema.pre('remove', async function () {
   const { __v, ...data } = this.toObject();
