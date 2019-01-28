@@ -4,6 +4,8 @@ import AuthDirective from '../directives/auth_directive';
 import { isAdmin, isManager, isAuth } from '../config/permissions';
 import crud from './crud';
 import { verifyToken } from '../config/graphql';
+import { Sites } from './sites'
+
 export const Users = crud(User);
 
 Users.login = async (params) => {
@@ -46,8 +48,11 @@ const typeDefs = `
 
     type UserCreditHistory {
         amount: Float!
+        type: String!
+        balance: Float
         createdAt: String!
         count: Int!
+        note: String!
     }
 
     input UserInput {
@@ -119,8 +124,9 @@ const TypeResolvers = {
         sites: async (_, args, ctx) => {
             return (await User.populate(_, 'sites')).sites;
         },
-        siteCount: (_, args, ctx) => {
-            return _.sites.length;
+        siteCount: async (_, args, ctx) => {
+            const result = (await Sites.model.find({ manager: _.id, $or: [{ isDeleted: false }, { isDeleted: null }] }))            
+            return result.length
         },
         totalSitesCost: async (_, args, ctx) => {
             const user = await User.populate(_, "sites");
@@ -145,7 +151,7 @@ const MutationSchema = `
     updateUser(id: ID!, data: UserUpdateInput!): User
     deleteUsers(ids: [String!]!): Status
     login(data: LoginInput!): Login
-    credit(id: String!, amount: Float!): UserCreditHistory!
+    credit(id: String!, amount: Float!, note: String): UserCreditHistory!
     updateUserContact(id: String!, contact: Float!): User
     updateUserPassword(id: String!, data: UserPasswordInput!): Status
 `;
@@ -170,9 +176,9 @@ const RootMutation = {
         return { status: true };
     }),
     login: (_, { data }) => Users.login(data),
-    credit: isAdmin.createResolver(async (_, { id, amount }) => {
+    credit: isAdmin.createResolver(async (_, { id, ...rest }) => {
         let user = await Users.find({ id });
-        await user.credit(amount);
+        await user.credit(rest);
         return await (await Users.find({ id })).toObject().history[0];
     }),
     updateUserContact: isManager.createResolver(async (_, { id, contact }) => {

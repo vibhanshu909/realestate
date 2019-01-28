@@ -64,6 +64,10 @@ const SiteSchema = Schema({
       min: 0,
       default: 0
     }
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
   }
 }, {
     timestamps: true
@@ -120,7 +124,7 @@ async function totalHook(_) {
     other2: 0,
   };
   entries.forEach(e => {
-    const { _id, total: t, other, other2, managerSpentAmount: msa, site, createdAt, updatedAt, __v, ...data } = e;
+    const { _id, total: t, other, other2, note, managerSpentAmount: msa, site, createdAt, updatedAt, __v, ...data } = e;
     cost += t;
     managerSpentAmount += msa;
     newTotal.other += other.cost;
@@ -138,16 +142,16 @@ async function totalHook(_) {
 // save
 SiteSchema.pre('save', totalHook);
 
-SiteSchema.post('save', async function () {
-  return (await Users.find({ id: this.manager })).reEval();
-});
+// SiteSchema.post('save', async function () {
+//   return (await Users.find({ id: this.manager })).reEval();
+// });
 
 // update
 SiteSchema.pre('update', totalHook);
 
-SiteSchema.post('update', async function () {
-  return (await Users.find({ id: this.manager })).reEval();
-});
+// SiteSchema.post('update', async function () {
+//   return (await Users.find({ id: this.manager })).reEval();
+// });
 
 SiteSchema.pre('remove', async function () {
   const { __v, ...data } = this.toObject();

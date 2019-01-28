@@ -26,6 +26,7 @@ const typeDefs = `
     site: Site!
     managerSpentAmount: Float!
     total: Float!
+    note: String!
   }
 
   type SiteEntryOutput {
@@ -53,7 +54,8 @@ const typeDefs = `
     dust: SiteEntryFieldInput,
     other: SiteEntryFieldOtherInput,
     other2: SiteEntryFieldOtherInput,
-    createdAt: String!
+    createdAt: String
+    note: String
   }
   
   input SiteEntryFieldInput {
@@ -123,23 +125,78 @@ const MutationSchema = `
 // Mutation resolvers
 const RootMutation = {
   createSiteEntry: isManager.createResolver(async (_, { siteId, data }, ctx) => {
+    const { createdAt } = data;
     if (ctx.user.isManager()) {
-      const { createdAt } = data;
+      const today = new Date(getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1)
       const entries = await SiteEntries.all({
         query: {
           site: await Sites.find({ id: siteId }),
-          createdAt: { $gte: new Date(getDate()) }
+          createdAt: { $gte: today }
         }
       });
       if (entries.length) {
         throw new Error("Not allowed")
       }
     }
-    const site = await Sites.find({ id: siteId });
+    const site = await Sites.find({ id: siteId }).populate('manager');
     ctx.data = {
       site
     };
-    const entry = await SiteEntries.create({ site: siteId, ...data });
+    let payload = null;
+    if (createdAt) {
+      payload = { site: siteId, ...data }
+    }
+    else {
+      const { createdAt, ...restPayload } = data;
+      payload = { site: siteId, ...restPayload }
+    }
+    // Remote Begin
+    const excludeList = ['createdAt', 'site', 'mistri', 'labour', 'other', 'other2', 'note']
+    const variables = Object.keys(payload)
+      .filter(e => !excludeList.includes(e))
+      .map(e => ({
+        name: e,
+        quantity: payload[e].quantity,
+        price: payload[e].cost
+      }))
+    const result = await ctx.fetchGraphql(`
+    mutation createTransactionOnSiteEntry($data: RemoteTransactionCreateInput!) {
+      createRemoteTransaction(data: $data){
+        id
+        createdAt
+        stock{
+          id
+          name
+          unit
+          available
+        }
+        supplier{
+          id
+          username
+          role
+        }
+      }
+    }
+    `, {
+        data: {
+          entries: variables,
+          supplierId: site.manager._id,
+          supplierName: site.manager.username,
+          siteName: site.name
+        }
+      })
+    console.log("result ===", result)
+    if (!result.data && result.errors) {
+      throw new Error("Error from Stock, stock may be unavailable")
+    }
+    // Remote End
+    const entry = await SiteEntries.create(payload);
+    await site.manager.debit({
+      amount: entry.managerSpentAmount,
+      note: `For: "${site.name}"`
+    })
     site.entries.unshift(entry);
     site.save();
     return entry;
