@@ -1,9 +1,9 @@
-import { Site } from '../models/Site';
-import { isAdmin, isManager } from '../config/permissions';
-import { ROLES } from '../models/User';
-import crud from './crud';
-import { Users } from './users';
-import { SiteEntries } from './siteEntries';
+import { Site } from "../models/Site";
+import { isAdmin, isManager } from "../config/permissions";
+import { ROLES } from "../models/User";
+import crud from "./crud";
+import { Users } from "./users";
+import { SiteEntries } from "./siteEntries";
 
 export const Sites = crud(Site);
 
@@ -70,58 +70,66 @@ const TypeResolvers = {
       return ctx.result;
     },
     entryCount: (_, args, ctx) => {
-      return _.entries.length
+      return _.entries.length;
     },
-    lastEntryDate: async (_) => {
-      console.log(_)
-      if(_.entries && _.entries.length){
-        const entryId = _.entries[0]
-        return (await SiteEntries.find({id: entryId})).createdAt
+    lastEntryDate: async _ => {
+      console.log(_);
+      if (_.entries && _.entries.length) {
+        const entryId = _.entries[0];
+        return (await SiteEntries.find({ id: entryId })).createdAt;
       }
-      return null
+      return null;
+    },
+    manager: async _ => {
+      if (!_.manager) {
+        return {
+          username: '"Manager Deleted"'
+        };
+      }
+      return _.manager;
     }
   }
 };
 
 const RootQuery = {
   sites: isManager.createResolver(async (_, args, ctx) => {
-    ctx.data = { count: await Site.countDocuments() };
+    // ctx.data = { count: await Site.countDocuments() };
     const { user } = ctx;
     let result;
-    if (user.role == ROLES.ADMIN) {
-      result = await Promise.resolve(Sites.all({
-        query: {
-          $or: [
-            {
-              isDeleted: false
-            },
-            {
-              isDeleted: null
-            }
-          ]
+    const query = {
+      $or: [
+        {
+          isDeleted: false
         },
-        ...args,
-      }).populate('manager'));
-      const length = (await Sites.model.count({ $or: [{ isDeleted: false }, { isDeleted: null }] }))            
-            // return result.length
+        {
+          isDeleted: null
+        }
+      ]
+    };
+    if (user.role == ROLES.ADMIN) {
+      result = await Promise.resolve(
+        Sites.all({
+          query,
+          ...args
+        }).populate("manager")
+      );
+      const length = await Sites.model.count({
+        $or: [{ isDeleted: false }, { isDeleted: null }]
+      });
+      // return result.length
       ctx.data = { count: length };
-    }
-    else {
+    } else {
       result = await Sites.all({
         query: {
-          _id: { $in: user.sites },
-          $or: [
-            {
-              isDeleted: false
-            },
-            {
-              isDeleted: null
-            }
-          ]
+          ...query,
+          _id: { $in: user.sites }
         },
-        ...args,
-      }).populate('manager');
-      const length = (await Sites.model.count({ _id: { $in: user.sites }, $or: [{ isDeleted: false }, { isDeleted: null }] }))            
+        ...args
+      }).populate("manager");
+      const length = await Sites.model.count({
+        _id: { $in: user.sites },
+        $or: [{ isDeleted: false }, { isDeleted: null }]
+      });
       // ctx.data = { count: user.sites.length };
       ctx.data = { count: result.length };
     }
@@ -131,13 +139,11 @@ const RootQuery = {
     ctx.data = { count: Site.countDocuments() };
     const { user } = ctx;
     if (user.role == ROLES.ADMIN) {
-      return Sites.find(args).populate('manager');
-    }
-    else {
+      return Sites.find(args).populate("manager");
+    } else {
       if (user.sites.find(e => String(e) === args.id)) {
-        return Sites.find(args).populate('manager');
-      }
-      else {
+        return Sites.find(args).populate("manager");
+      } else {
         throw new Error("Site doesn't belong to user");
       }
     }
@@ -161,21 +167,23 @@ const RootMutation = {
     return Site.populate(site, { path: "manager" });
   }),
   updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
-    return Site.populate(await Sites.update({ id, ...data }), { path: "manager" });
+    return Site.populate(await Sites.update({ id, ...data }), {
+      path: "manager"
+    });
   }),
   deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
     if (args.ids.length) {
       // await Sites.remove(args);
       args.ids.forEach(async e => {
-        const site = await Sites.find({ id: e })
-        site.isDeleted = true
-        site.save()
-      })
-      return { status: true }
+        const site = await Sites.find({ id: e });
+        site.isDeleted = true;
+        site.save();
+      });
+      return { status: true };
     }
-    return { status: false }
-  }),
-}
+    return { status: false };
+  })
+};
 
 // const SchemaDirectives = {
 //     auth: AuthDirective,
@@ -183,4 +191,11 @@ const RootMutation = {
 //     authenticated: AuthDirective,
 // };
 
-export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, TypeResolvers };
+export default {
+  typeDefs,
+  QuerySchema,
+  MutationSchema,
+  RootQuery,
+  RootMutation,
+  TypeResolvers
+};

@@ -1,69 +1,73 @@
-import mongoose from '../config/db';
-import DeletedProperty from './Deleted/Property';
+import mongoose from "../config/db";
+import DeletedProperty from "./Deleted/Property";
 
 var Schema = mongoose.Schema;
 
-const PropertySchema = Schema({
-  name: {
-    type: String,
-    lowercase: true,
-    unique: true,
-    required: true,
-  },
-  location: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  buyer: {
-    type: String,
-  },
-  buyerNumber: {
-    type: Number,
-  },
-  totalReceivedAmount: {
-    type: Number,
-    default: 0,
-  },
-  balance: {
-    type: Number,
-    default: 0
-  },
-  nextDueDate: {
-    type: Date,
-    validate: {
-      validator: function (val) {
-        return Date.now() <= new Date(val)
-      },
-      message: props => `${props.value} must be in future`
-    },
-  },
-  note: String,
-  history: [{
-    amount: Number,
-    note: {
+const PropertySchema = Schema(
+  {
+    name: {
       type: String,
-      default: ''
+      lowercase: true,
+      unique: true,
+      required: true
     },
-    createdAt: {
+    location: {
+      type: String,
+      required: true
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    buyer: {
+      type: String
+    },
+    buyerNumber: {
+      type: Number
+    },
+    totalReceivedAmount: {
+      type: Number,
+      default: 0
+    },
+    balance: {
+      type: Number,
+      default: 0
+    },
+    nextDueDate: {
       type: Date,
-      default: () => new Date(new Date().toDateString())
+      validate: {
+        validator: function(val) {
+          return Date.now() <= new Date(val);
+        },
+        message: props => `${props.value} must be in future`
+      }
+    },
+    note: String,
+    history: [
+      {
+        amount: Number,
+        note: {
+          type: String,
+          default: ""
+        },
+        createdAt: {
+          type: Date,
+          default: () => new Date(new Date().toDateString())
+        }
+      }
+    ],
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "User"
     }
-  }],
-  owner: {
-    type: Schema.Types.ObjectId,
-    ref: "User"
-  }
-},
+  },
   {
     timestamps: true
-  });
+  }
+);
 
-PropertySchema.pre('save', async function (next) {
+PropertySchema.pre("save", async function(next) {
   if (this.isNew) {
     this.balance = this.price - this.totalReceivedAmount;
     this.history.push({ amount: this.totalReceivedAmount });
@@ -71,8 +75,7 @@ PropertySchema.pre('save', async function (next) {
   return next();
 });
 
-
-PropertySchema.pre('remove', async function () {
+PropertySchema.pre("remove", async function() {
   const { __v, ...data } = this.toObject();
   await DeletedProperty.create(data);
 });
@@ -88,25 +91,31 @@ PropertySchema.pre('remove', async function () {
 //     this.cost = total;
 // });
 
-PropertySchema.methods.credit = async function (params) {
+PropertySchema.methods.credit = async function(params) {
   const { amount, nextDueDate, note } = params;
   if (amount === 0) {
     return this;
   }
-  return Property.findByIdAndUpdate(this.id, {
-    totalReceivedAmount: this.totalReceivedAmount + amount,
-    balance: this.balance - amount,
-    nextDueDate,
-    $push: {
-      history: {
-        $each: [{
-          amount,
-          note
-        }],
-        $position: 0
-      },
-    }
-  }, { new: true, runValidators: true });
+  return Property.findByIdAndUpdate(
+    this.id,
+    {
+      totalReceivedAmount: this.totalReceivedAmount + amount,
+      balance: this.balance - amount,
+      nextDueDate,
+      $push: {
+        history: {
+          $each: [
+            {
+              amount,
+              note
+            }
+          ],
+          $position: 0
+        }
+      }
+    },
+    { new: true, runValidators: true }
+  );
   // this.update({
   //   totalReceivedAmount: this.totalReceivedAmount + amount,
   //   balance: this.balance - amount,
@@ -119,7 +128,7 @@ PropertySchema.methods.credit = async function (params) {
   //     },
   //   }
   // }, { new: true, runValidators: true });
-}
+};
 
 // PropertySchema.methods.reEval = async function () {
 //     const user = await User.populate(this, 'sites');
