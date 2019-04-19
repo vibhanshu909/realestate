@@ -1,9 +1,9 @@
-import { Site } from "../models/Site";
 import { isAdmin, isManager } from "../config/permissions";
+import { Site } from "../models/Site";
 import { ROLES } from "../models/User";
 import crud from "./crud";
-import { Users } from "./users";
 import { SiteEntries } from "./siteEntries";
+import { Users } from "./users";
 
 export const Sites = crud(Site);
 
@@ -83,6 +83,7 @@ const TypeResolvers = {
     manager: async _ => {
       if (!_.manager) {
         return {
+          id: String(Math.random()),
           username: '"Manager Deleted"'
         };
       }

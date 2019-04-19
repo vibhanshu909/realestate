@@ -1,7 +1,7 @@
+import AWS from "aws-sdk";
+import unirest from "unirest";
 import { Properties } from "../connectors/properties";
 import Property from "../models/Property";
-import unirest from "unirest";
-import AWS from "aws-sdk";
 
 export function stripString(str) {
   return str.replace(/\s\s+/g, " ");
@@ -118,19 +118,22 @@ export default async function() {
     const owner = (await Property.populate(e, "owner")).toObject().owner;
     admin.to = owner.contact;
     admin.name = owner.username;
-    const msg = stripString(`
-        Your payment is due for-
-        Property name: ${e.name}.
-        Price: Rs. ${e.price}
-        Owner: ${admin.name}
-        Owner's contact: ${admin.to}
-        Total Paid Amount: Rs. ${e.totalReceivedAmount}
-        Balance: Rs. ${e.price - e.totalReceivedAmount}
-        ${e.note.length ? `Note: ${e.note}` : ""}
-        `);
-    awsSns({ to: e.buyerNumber, msg });
+    if (e.buyerNumber && e.buyerNumber > 999999999) {
+      const msg = stripString(`
+          Your payment is due for-
+          Property name: ${e.name}.
+          Price: Rs. ${e.price}
+          Owner: ${admin.name}
+          Owner's contact: ${admin.to}
+          Total Paid Amount: Rs. ${e.totalReceivedAmount}
+          Balance: Rs. ${e.price - e.totalReceivedAmount}
+          ${e.note.length ? `Note: ${e.note}` : ""}
+          `);
+      awsSns({ to: e.buyerNumber, msg });
+    }
 
-    admin.msg += stripString(`                
+    if (admin.to && admin.to > 999999999) {
+      admin.msg += stripString(`                
         Property name: ${e.name}.
         Price: Rs.${e.price}
         Buyer's name: ${e.buyer}.
@@ -139,7 +142,6 @@ export default async function() {
         Balance: Rs. ${e.price - e.totalReceivedAmount}
         ${e.note.length ? `Note: ${e.note}` : ""}
         `);
-    if (admin.to) {
       awsSns(admin);
     }
   }
