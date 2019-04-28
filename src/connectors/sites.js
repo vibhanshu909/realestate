@@ -132,7 +132,7 @@ const RootQuery = {
         $or: [{ isDeleted: false }, { isDeleted: null }]
       });
       // ctx.data = { count: user.sites.length };
-      ctx.data = { count: result.length };
+      ctx.data = { count: length };
     }
     return result;
   }),
