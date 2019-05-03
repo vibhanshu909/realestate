@@ -38,6 +38,10 @@ const PropertySchema = Schema(
       type: Date,
       validate: {
         validator: function(val) {
+          console.log("val =", val);
+          if (val === " " || val === null) {
+            return true;
+          }
           return Date.now() <= new Date(val);
         },
         message: props => `${props.value} must be in future`
@@ -47,6 +51,9 @@ const PropertySchema = Schema(
     history: [
       {
         amount: Number,
+        balance: {
+          type: Number
+        },
         note: {
           type: String,
           default: ""
@@ -107,6 +114,7 @@ PropertySchema.methods.credit = async function(params) {
           $each: [
             {
               amount,
+              balance: this.balance - amount,
               note
             }
           ],
