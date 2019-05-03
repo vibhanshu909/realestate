@@ -38,6 +38,10 @@ const PropertySchema = Schema(
       type: Date,
       validate: {
         validator: function(val) {
+          console.log("val =", val);
+          if (val === " " || val === null) {
+            return true;
+          }
           return Date.now() <= new Date(val);
         },
         message: props => `${props.value} must be in future`

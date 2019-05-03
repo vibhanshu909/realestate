@@ -13,7 +13,7 @@ const typeDefs = `
         buyerNumber: Float!
         totalReceivedAmount: Float!        
         balance: Float!
-        nextDueDate: String!
+        nextDueDate: String
         note: String
         history: [PropertyCreditHistory]!
         createdAt: String!
@@ -40,7 +40,7 @@ const typeDefs = `
         buyer: String!
         buyerNumber: Float!
         totalReceivedAmount: Float!
-        nextDueDate: String!
+        nextDueDate: String
         note: String
     }
 
@@ -63,6 +63,7 @@ const typeDefs = `
 // Queries allowed in graphql
 const QuerySchema = `
     properties(limit: Int, skip: Int = 0): [Property]
+    dueProperties(limit: Int, skip: Int = 0): [Property]
     property(id: String!): Property
     propertyTotal: PropertyTotal!
     propertyCreditHistory(id: String!, limit: Int, skip: Int = 0): [PropertyCreditHistory!]!
@@ -71,11 +72,36 @@ const QuerySchema = `
 // Query resolvers
 
 const RootQuery = {
-  properties: isAdmin.createResolver((_, args, ctx) => {
-    ctx.data = {
-      count: Property.countDocuments()
+  properties: isAdmin.createResolver(async (_, args, ctx) => {
+    const query = {
+      $or: [
+        {
+          nextDueDate: {
+            $gt: Date.now()
+          }
+        },
+        {
+          nextDueDate: {
+            $eq: null
+          }
+        }
+      ]
     };
-    return Properties.all({ ...args, query: {} });
+    ctx.data = {
+      count: await Property.countDocuments(query)
+    };
+    return Properties.all({ ...args, query });
+  }),
+  dueProperties: isAdmin.createResolver(async (_, args, ctx) => {
+    const query = {
+      nextDueDate: {
+        $lte: Date.now()
+      }
+    };
+    ctx.data = {
+      count: await Property.countDocuments(query)
+    };
+    return Properties.all({ ...args, query });
   }),
   propertyTotal: async () => {
     const propertiesResult = await Properties.all({ query: {} });
