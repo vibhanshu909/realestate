@@ -28,6 +28,7 @@ const typeDefs = `
     }
     type PropertyCreditHistory {
         amount: Float!
+        balance: Float
         createdAt: String!
         count: Int!
         note: String!

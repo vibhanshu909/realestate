@@ -51,6 +51,9 @@ const PropertySchema = Schema(
     history: [
       {
         amount: Number,
+        balance: {
+          type: Number
+        },
         note: {
           type: String,
           default: ""
@@ -111,6 +114,7 @@ PropertySchema.methods.credit = async function(params) {
           $each: [
             {
               amount,
+              balance: this.balance - amount,
               note
             }
           ],
