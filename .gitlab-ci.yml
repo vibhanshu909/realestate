@@ -13,10 +13,10 @@ before_script:
 
 stages:
   - build
+  - deploy
 build:
   stage: build
   only:
-    - testing
     - production
   script:
     - echo $PROD_ENV_FILE | base64 -d > production.env
@@ -24,3 +24,20 @@ build:
     - docker push $CONTAINER_IMAGE:$CI_COMMIT_SHA
     - docker push $CONTAINER_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CONTAINER_IMAGE:latest
+
+deploy production:
+  stage: deploy
+  only:
+    - production
+  before_script:
+    - "which ssh-agent || ( apk update && apk add openssh-client )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+  script:
+    - echo "Deploy to production server"
+    - ssh ubuntu@kka.codemitter.com -o StrictHostKeyChecking=no 'cd kka && docker-compose pull && docker-compose down && docker-compose up -d'
+  environment:
+    name: production
+    url: https://kka.codemitter.com

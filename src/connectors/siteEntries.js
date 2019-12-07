@@ -1,9 +1,9 @@
-import { Site } from '../models/Site';
-import { SiteEntry } from '../models/SiteEntry';
-import { isAdmin, isManager } from '../config/permissions';
-import crud from './crud';
-import { getDate } from '../utils/date';
-import { Sites } from './sites';
+import { isAdmin, isManager } from "../config/permissions";
+import { Site } from "../models/Site";
+import { SiteEntry } from "../models/SiteEntry";
+import { getDate } from "../utils/date";
+import crud from "./crud";
+import { Sites } from "./sites";
 
 export const SiteEntries = crud(SiteEntry);
 
@@ -84,25 +84,27 @@ const TypeResolvers = {
       if (ctx.data) {
         return ctx.data.site;
       }
-      Sites.find({ id: _.site })
+      Sites.find({ id: _.site });
     }
   }
 };
 
 const RootQuery = {
-  siteEntries: isManager.createResolver(async (_, { siteId: id, limit, skip }, ctx) => {
-    const site = await Sites.find({ id });
-    const result = await Site.populate(site, {
-      path: 'entries',
-      options: {
-        limit,
-        skip,
-        sort: "-createdAt"
-      }
-    });
-    ctx.data = { count: site.entries.length, site };
-    return result.entries;
-  }),
+  siteEntries: isManager.createResolver(
+    async (_, { siteId: id, limit, skip }, ctx) => {
+      const site = await Sites.find({ id });
+      const result = await Site.populate(site, {
+        path: "entries",
+        options: {
+          limit,
+          skip,
+          sort: "-createdAt"
+        }
+      });
+      ctx.data = { count: site.entries.length, site };
+      return result.entries;
+    }
+  ),
   siteEntry: isManager.createResolver(async (_, args, ctx) => {
     return SiteEntries.find(args);
   })
@@ -124,93 +126,96 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-  createSiteEntry: isManager.createResolver(async (_, { siteId, data }, ctx) => {
-    const { createdAt } = data;
-    if (ctx.user.isManager()) {
-      const today = new Date(getDate());
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1)
-      const entries = await SiteEntries.all({
-        query: {
-          site: await Sites.find({ id: siteId }),
-          createdAt: { $gte: today }
+  createSiteEntry: isManager.createResolver(
+    async (_, { siteId, data }, ctx) => {
+      const { createdAt } = data;
+      if (ctx.user.isManager()) {
+        const today = new Date(getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const entries = await SiteEntries.all({
+          query: {
+            site: await Sites.find({ id: siteId }),
+            createdAt: { $gte: today }
+          }
+        });
+        if (entries.length) {
+          throw new Error("Not allowed");
         }
+      }
+      const site = await Sites.find({ id: siteId }).populate("manager");
+      ctx.data = {
+        site
+      };
+      let payload = null;
+      if (createdAt) {
+        payload = { site: siteId, ...data };
+      } else {
+        const { createdAt, ...restPayload } = data;
+        payload = { site: siteId, ...restPayload };
+      }
+      // // Remote Begin
+      // const excludeList = ['createdAt', 'site', 'mistri', 'labour', 'other', 'other2', 'note']
+      // const variables = Object.keys(payload)
+      //   .filter(e => !excludeList.includes(e))
+      //   .map(e => ({
+      //     name: e,
+      //     quantity: payload[e].quantity,
+      //     price: payload[e].cost
+      //   }))
+      // const result = await ctx.fetchGraphql(`
+      // mutation createTransactionOnSiteEntry($data: RemoteTransactionCreateInput!) {
+      //   createRemoteTransaction(data: $data){
+      //     id
+      //     createdAt
+      //     stock{
+      //       id
+      //       name
+      //       unit
+      //       available
+      //     }
+      //     supplier{
+      //       id
+      //       username
+      //       role
+      //     }
+      //   }
+      // }
+      // `, {
+      //     data: {
+      //       entries: variables,
+      //       supplierId: site.manager._id,
+      //       supplierName: site.manager.username,
+      //       siteName: site.name
+      //     }
+      //   })
+      // console.log("result ===", result)
+      // if (!result.data && result.errors) {
+      //   throw new Error("Error from Stock, stock may be unavailable")
+      // }
+      // Remote End
+      const entry = await SiteEntries.create(payload);
+      await site.manager.debit({
+        amount: entry.managerSpentAmount,
+        note: `For: "${site.name}"`
       });
-      if (entries.length) {
-        throw new Error("Not allowed")
-      }
+      site.entries.unshift(entry);
+      site.save();
+      return entry;
     }
-    const site = await Sites.find({ id: siteId }).populate('manager');
-    ctx.data = {
-      site
-    };
-    let payload = null;
-    if (createdAt) {
-      payload = { site: siteId, ...data }
+  ),
+  updateSiteEntry: isAdmin.createResolver(
+    async (_, { siteId, id, data }, ctx) => {
+      let site = Sites.find({ id: siteId });
+      let entry = await SiteEntries.update({ id, ...data });
+      site = await site;
+      ctx.data = {
+        site
+      };
+      site.save();
+      return entry;
     }
-    else {
-      const { createdAt, ...restPayload } = data;
-      payload = { site: siteId, ...restPayload }
-    }
-    // Remote Begin
-    const excludeList = ['createdAt', 'site', 'mistri', 'labour', 'other', 'other2', 'note']
-    const variables = Object.keys(payload)
-      .filter(e => !excludeList.includes(e))
-      .map(e => ({
-        name: e,
-        quantity: payload[e].quantity,
-        price: payload[e].cost
-      }))
-    const result = await ctx.fetchGraphql(`
-    mutation createTransactionOnSiteEntry($data: RemoteTransactionCreateInput!) {
-      createRemoteTransaction(data: $data){
-        id
-        createdAt
-        stock{
-          id
-          name
-          unit
-          available
-        }
-        supplier{
-          id
-          username
-          role
-        }
-      }
-    }
-    `, {
-        data: {
-          entries: variables,
-          supplierId: site.manager._id,
-          supplierName: site.manager.username,
-          siteName: site.name
-        }
-      })
-    console.log("result ===", result)
-    if (!result.data && result.errors) {
-      throw new Error("Error from Stock, stock may be unavailable")
-    }
-    // Remote End
-    const entry = await SiteEntries.create(payload);
-    await site.manager.debit({
-      amount: entry.managerSpentAmount,
-      note: `For: "${site.name}"`
-    })
-    site.entries.unshift(entry);
-    site.save();
-    return entry;
-  }),
-  updateSiteEntry: isAdmin.createResolver(async (_, { siteId, id, data }, ctx) => {
-    let site = Sites.find({ id: siteId });
-    let entry = await SiteEntries.update({ id, ...data });
-    site = await site;
-    ctx.data = {
-      site
-    };
-    site.save();
-    return entry;
-  }),
+  ),
   deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {
     console.log("deleteSiteEntries");
     if (args.ids.length) {
@@ -221,13 +226,12 @@ const RootMutation = {
       await SiteEntries.remove(args);
       console.log("removed");
       return { status: true };
-    }
-    else {
+    } else {
       console.log("else");
     }
     return { status: false };
-  }),
-}
+  })
+};
 
 // const SchemaDirectives = {
 //     auth: AuthDirective,
@@ -235,4 +239,11 @@ const RootMutation = {
 //     authenticated: AuthDirective,
 // };
 
-export default { typeDefs, QuerySchema, MutationSchema, RootQuery, RootMutation, TypeResolvers };
+export default {
+  typeDefs,
+  QuerySchema,
+  MutationSchema,
+  RootQuery,
+  RootMutation,
+  TypeResolvers
+};

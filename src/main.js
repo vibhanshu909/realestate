@@ -1,10 +1,10 @@
-import express from "express";
-import cron from "node-cron";
-import logger from "morgan";
 import cors from "cors";
+import express from "express";
+import logger from "morgan";
+import cron from "node-cron";
+import { createConn } from "./config/db";
 import graphqlConfig from "./config/graphql";
 import propertyTask from "./tasks/property";
-import { createConn } from "./config/db";
 
 const PORT = process.env.PORT;
 
@@ -15,7 +15,7 @@ const PORT = process.env.PORT;
 
   app.use(logger("dev"));
 
-  const whitelist = ["https://kka.easylucknow.com"].concat(
+  const whitelist = JSON.parse(process.env.WHITELIST_DOMAINS).concat(
     process.env.NODE_ENV === "development" ? ["*"] : []
   );
   const corsOptions = {
@@ -37,7 +37,7 @@ const PORT = process.env.PORT;
 
   app.disable("x-powered-by");
 
-  const staticFolder = "build/";
+  const staticFolder = "frontend/";
   app.use(express.static(staticFolder));
   app.use("*", express.static(staticFolder));
 

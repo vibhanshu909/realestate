@@ -7,7 +7,7 @@
     "build": "rimraf ./dist && babel -d ./dist ./src --source-maps",
     "start:dev": "NODE_ENV=development babel-watch src/index.js",
     "start:test": "babel-watch src/server_test.js",
-    "start:prod": "npm run build && NODE_ENV=production TZ=UTC node dist/index.js",
+    "start:prod": "NODE_ENV=production TZ=UTC node dist/index.js",
     "seed:prod": "NODE_ENV=production babel-watch ./src/models/seeds/user.js",
     "seed:fake": "NODE_ENV=development babel-watch ./src/models/seeds/fake.js",
     "seed:dev": "NODE_ENV=development babel-watch ./src/models/seeds/dev_user.js",
