@@ -1,8 +1,8 @@
 FROM node:latest
 WORKDIR /app
-COPY package.json .
-RUN npm install
+COPY package*.json /app/
+RUN npm ci
 COPY . /app
 RUN npm run build
-EXPOSE 6000
+EXPOSE 4000
 CMD npm run start:prod

@@ -15,7 +15,7 @@ const PORT = process.env.PORT;
 
   app.use(logger("dev"));
 
-  const whitelist = ["https://kka.easylucknow.com"].concat(
+  const whitelist = JSON.parse(process.env.WHITELIST_DOMAINS).concat(
     process.env.NODE_ENV === "development" ? ["*"] : []
   );
   const corsOptions = {
