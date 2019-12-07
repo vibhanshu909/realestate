@@ -1,19 +1,18 @@
-import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
-import bodyParser from 'body-parser';
-import { makeExecutableSchema } from 'graphql-tools';
-import GraphQLJSON from 'graphql-type-json';
-import jwt from 'jsonwebtoken';
-import Activities from '../connectors/activities';
-import Metrics from '../connectors/metric';
-import Properties from '../connectors/properties';
-import SiteEntries from '../connectors/siteEntries';
-import Sites from '../connectors/sites';
-import Users from '../connectors/users';
-import { User } from '../models/User';
-import fetch from 'isomorphic-fetch'
+import { graphiqlExpress, graphqlExpress } from "apollo-server-express";
+import bodyParser from "body-parser";
+import { makeExecutableSchema } from "graphql-tools";
+import GraphQLJSON from "graphql-type-json";
+import jwt from "jsonwebtoken";
+import Activities from "../connectors/activities";
+import Metrics from "../connectors/metric";
+import Properties from "../connectors/properties";
+import SiteEntries from "../connectors/siteEntries";
+import Sites from "../connectors/sites";
+import Users from "../connectors/users";
+import { User } from "../models/User";
 
 export async function verifyToken(token) {
-  let user, expired
+  let user, expired;
   try {
     const obj = await jwt.verify(token, process.env.SECRET, {
       maxAge: "1y"
@@ -22,125 +21,117 @@ export async function verifyToken(token) {
   } catch (e) {
     expired = true;
   }
-  return { user: user || null, expired: expired || false }
+  return { user: user || null, expired: expired || false };
 }
-const stockServiceUrl = `http://${process.env.STOCK_SERVICE_HOST}:${process.env.STOCK_SERVICE_PORT}`;
-console.log(stockServiceUrl)
-const fetchGraphql = (headers) => async (query, variables = {}) => {
-  const result = await fetch(stockServiceUrl, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query,
-      variables
-    }),
-  }).then(_ => _.json())
-  return result
-};
 
-export default function (app) {
-  const typeDefs = `        
-        scalar JSON
-        type Status {
-            status: Boolean!
-        }
-        
-        ${Users.typeDefs}
-        ${Sites.typeDefs}
-        ${SiteEntries.typeDefs}
-        ${Properties.typeDefs}
-        ${Activities.typeDefs}
-        ${Metrics.typeDefs}
+const typeDefs = `        
+  scalar JSON
+  type Status {
+    status: Boolean!
+  }
+  
+  ${Users.typeDefs}
+  ${Sites.typeDefs}
+  ${SiteEntries.typeDefs}
+  ${Properties.typeDefs}
+  ${Activities.typeDefs}
+  ${Metrics.typeDefs}
 
-        # the schema allows the following query:
-        type Query {
-            ${Users.QuerySchema}
-            ${Sites.QuerySchema}
-            ${SiteEntries.QuerySchema}
-            ${Properties.QuerySchema}
-            ${Activities.QuerySchema}
-            ${Metrics.QuerySchema}
-        }
+  # the schema allows the following query:
+  type Query {
+    ${Users.QuerySchema}
+    ${Sites.QuerySchema}
+    ${SiteEntries.QuerySchema}
+    ${Properties.QuerySchema}
+    ${Activities.QuerySchema}
+    ${Metrics.QuerySchema}
+  }
 
-        # this schema allows the following mutation:
-        type Mutation {
-            ${Users.MutationSchema}
-            ${Sites.MutationSchema}
-            ${SiteEntries.MutationSchema}
-            ${Properties.MutationSchema}
-            ${Activities.MutationSchema}
-            ${Metrics.MutationSchema}
-        }
-    `;
-  const resolvers = Object.assign({}, {
-    Query: Object.assign({},
+  # this schema allows the following mutation:
+  type Mutation {
+    ${Users.MutationSchema}
+    ${Sites.MutationSchema}
+    ${SiteEntries.MutationSchema}
+    ${Properties.MutationSchema}
+    ${Activities.MutationSchema}
+    ${Metrics.MutationSchema}
+  }
+`;
+const resolvers = Object.assign(
+  {},
+  {
+    Query: Object.assign(
+      {},
       Users.RootQuery,
       Sites.RootQuery,
       SiteEntries.RootQuery,
       Properties.RootQuery,
       Activities.RootQuery,
-      Metrics.RootQuery,
+      Metrics.RootQuery
     ),
-    Mutation: Object.assign({},
+    Mutation: Object.assign(
+      {},
       Users.RootMutation,
       Sites.RootMutation,
       SiteEntries.RootMutation,
       Properties.RootMutation,
       Activities.RootMutation,
-      Metrics.RootMutation,
+      Metrics.RootMutation
     ),
-    JSON: GraphQLJSON,
+    JSON: GraphQLJSON
   },
-    Users.TypeResolvers,
-    Sites.TypeResolvers,
-    SiteEntries.TypeResolvers,
-    Properties.TypeResolvers,
-    Activities.TypeResolvers,
-    Metrics.TypeResolvers,
+  Users.TypeResolvers,
+  Sites.TypeResolvers,
+  SiteEntries.TypeResolvers,
+  Properties.TypeResolvers,
+  Activities.TypeResolvers,
+  Metrics.TypeResolvers
+);
+
+// Put together a schema
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers
+  // schemaDirectives: Object.assign({}, Users.SchemaDirectives)
+});
+
+export default function(app) {
+  // The GraphQL endpoint
+  app.use(
+    "/graphql",
+    bodyParser.json(),
+    graphqlExpress(async req => {
+      let context = {
+        req,
+        user: req.user || null,
+        expired: false
+      };
+      // let fun = null;
+      if (req.headers.authorization) {
+        const token = req.headers.authorization;
+        // fun = fetchGraphql({
+        //   authorization: token,
+        // })
+        context = {
+          ...context,
+          ...(await verifyToken(token))
+          // fetchGraphql: fun,
+        };
+      } else {
+        req.user = null;
+      }
+      // var waitTill = new Date(new Date().getTime() + 2 * 1000);
+      // while(waitTill > new Date()){}
+
+      return {
+        schema,
+        context
+        // tracing: true,
+        // cacheControl: true
+      };
+    })
   );
 
-  // Put together a schema
-  const schema = makeExecutableSchema({
-    typeDefs,
-    resolvers,
-    // schemaDirectives: Object.assign({}, Users.SchemaDirectives)
-  });
-  // The GraphQL endpoint
-  app.use('/graphql', bodyParser.json(), graphqlExpress(async (req) => {
-    let context = {
-      req,
-      user: req.user || null,
-      expired: false,
-    };
-    let fun = null;
-    if (req.headers.authorization) {
-      const token = req.headers.authorization;
-      fun = fetchGraphql({
-        authorization: token,
-      })
-      context = {
-        ...context,
-        ...await verifyToken(token),
-        fetchGraphql: fun,
-      }
-    }
-    else {
-      req.user = null;
-    }
-    // var waitTill = new Date(new Date().getTime() + 2 * 1000);
-    // while(waitTill > new Date()){}
-
-    return {
-      schema,
-      context
-      // tracing: true,
-      // cacheControl: true
-    }
-  }));
-
   // GraphiQL, a visual editor for queries
-  app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
+  app.use("/graphiql", graphiqlExpress({ endpointURL: "/graphql" }));
 }
