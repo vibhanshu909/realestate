@@ -6,5 +6,6 @@ try {
     ...dotenv.parse(fs.readFileSync(`${process.env.NODE_ENV}.env`)),
     ...process.env,
   };
-} catch {}
+} catch (_) {}
+
 import("./main");
