@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf ./dist && babel -d ./dist ./src --source-maps",
+    "babel:build": "rimraf ./dist && babel -d ./dist ./src --source-maps",
+    "build": "tsc",
     "start:dev": "NODE_ENV=development babel-watch src/index.js",
     "start:test": "babel-watch src/server_test.js",
     "start:prod": "NODE_ENV=production TZ=UTC node dist/index.js",
