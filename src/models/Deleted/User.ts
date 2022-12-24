@@ -26,6 +26,7 @@ export const SchemaObject = {
   role: {
     type: String,
     required: true,
+    // @ts-expect-error TS(2550): Property 'values' does not exist on type 'ObjectCo... Remove this comment to see the full error message
     enum: Object.values(ROLES),
     default: ROLES.MANAGER
   },

@@ -69,7 +69,11 @@ export const defaultState = {
 
 export const resolvers = {
     Mutation: {
-        updateNetworkStatus: (_, { isConnected }, { cache }) => {
+        updateNetworkStatus: (_: $TSFixMe, {
+            isConnected
+        }: $TSFixMe, {
+            cache
+        }: $TSFixMe) => {
             const data = {
                 networkStatus: {
                     __typename: 'NetworkStatus',
@@ -79,7 +83,11 @@ export const resolvers = {
             cache.writeData({ data });
             return null;
         },
-        localLogin: async (_, { token }, { cache }) => {            
+        localLogin: async (_: $TSFixMe, {
+            token
+        }: $TSFixMe, {
+            cache
+        }: $TSFixMe) => {            
             const data = {
                 localLogin: {
                     __typename: 'LocalLogin',
@@ -89,7 +97,9 @@ export const resolvers = {
             await cache.writeData({ data });
             return null;
         },
-        entryTable: async (_, args, { cache }) => {
+        entryTable: async (_: $TSFixMe, args: $TSFixMe, {
+            cache
+        }: $TSFixMe) => {
             const data = {
                 entryTable: {
                     __typename: 'EntryTable',
@@ -99,7 +109,9 @@ export const resolvers = {
             await cache.writeData({ data });
             return null;
         },
-        siteTable: async (_, args, { cache }) => {
+        siteTable: async (_: $TSFixMe, args: $TSFixMe, {
+            cache
+        }: $TSFixMe) => {
             const data = {
                 siteTable: {
                     __typename: 'SiteTable',
@@ -109,7 +121,9 @@ export const resolvers = {
             await cache.writeData({ data });
             return null;
         },
-        userEntryTable: async (_, args, { cache }) => {
+        userEntryTable: async (_: $TSFixMe, args: $TSFixMe, {
+            cache
+        }: $TSFixMe) => {
             const data = {
                 userEntryTable: {
                     __typename: 'UserEntryTable',
@@ -119,7 +133,9 @@ export const resolvers = {
             await cache.writeData({ data });
             return null;
         },
-        creditEntryTable: async (_, args, { cache }) => {
+        creditEntryTable: async (_: $TSFixMe, args: $TSFixMe, {
+            cache
+        }: $TSFixMe) => {
             const data = {
                 creditEntryTable: {
                     __typename: 'CreditEntryTable',
@@ -129,7 +145,9 @@ export const resolvers = {
             await cache.writeData({ data });
             return null;
         },
-        propertyTable: async (_, args, { cache }) => {
+        propertyTable: async (_: $TSFixMe, args: $TSFixMe, {
+            cache
+        }: $TSFixMe) => {
             const data = {
                 propertyTable: {
                     __typename: 'PropertyTable',

@@ -1,3 +1,4 @@
+// @ts-expect-error TS(2307): Cannot find module 'apollo-boost' or its correspon... Remove this comment to see the full error message
 import { gql } from 'apollo-boost';
 
 export const LOCAL_LOGIN = gql`

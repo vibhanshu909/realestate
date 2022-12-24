@@ -42,7 +42,7 @@ const SiteEntrySchema = Schema({
   });
 SiteEntrySchema.index({ createdAt: 1 })
 
-function getTotal(entry) {
+function getTotal(entry: $TSFixMe) {
   let total = 0;
   let managerSpentAmount = 0;
   for (const e in entry) {
@@ -51,7 +51,7 @@ function getTotal(entry) {
   }
   return { total, managerSpentAmount };
 }
-SiteEntrySchema.pre('save', function (next) {
+SiteEntrySchema.pre('save', function(this: $TSFixMe, next: $TSFixMe) {
   const { _id, site, note, createdAt, updatedAt, total: _, managerSpentAmount: __, _v, __v, ...rest } = this.toObject();
   const {
     total,
@@ -62,7 +62,7 @@ SiteEntrySchema.pre('save', function (next) {
   return next();
 });
 
-SiteEntrySchema.pre('findOneAndUpdate', function (next) {
+SiteEntrySchema.pre('findOneAndUpdate', function(this: $TSFixMe, next: $TSFixMe) {
   const { $set, $setOnInsert, ...rest } = this._update;
   const {
     total,
@@ -73,7 +73,7 @@ SiteEntrySchema.pre('findOneAndUpdate', function (next) {
   return next();
 });
 
-SiteEntrySchema.pre('remove', async function () {
+SiteEntrySchema.pre('remove', async function(this: $TSFixMe) {
   const { __v, ...data } = this.toObject();
   await DeletedSiteEntry.create(data);
 });

@@ -1,3 +1,4 @@
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'json... Remove this comment to see the full error message
 import jwt from 'jsonwebtoken';
 import { User, ROLES } from '../models/User';
 import AuthDirective from '../directives/auth_directive';
@@ -8,7 +9,8 @@ import { Sites } from './sites'
 
 export const Users = crud(User);
 
-Users.login = async (params) => {
+// @ts-expect-error TS(2339): Property 'login' does not exist on type '{ all: ({... Remove this comment to see the full error message
+Users.login = async (params: $TSFixMe) => {
     const { username, password } = params;
     const user = await User.findOne({ username });
     if (!user) {
@@ -91,13 +93,13 @@ const QuerySchema = `
 // Query resolvers
 
 const RootQuery = {
-    users: isAdmin.createResolver(async (_, args, ctx) => {
+    users: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
         ctx.data = {
             count: await User.countDocuments(),
         };
         return Users.all({ ...args, query: { role: { $ne: ROLES.ADMIN } } });
     }),
-    userCreditHistory: isManager.createResolver(async (_, args, ctx) => {
+    userCreditHistory: isManager.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
         const { id, skip, limit } = args;
         const user = await Users.find(args);
         ctx.data = {
@@ -105,38 +107,38 @@ const RootQuery = {
         };
         return (await Users.find(args).select({ 'history': { '$slice': [skip, limit] } })).history;
     }),
-    user: isManager.createResolver((_, args, ctx) => {
+    user: isManager.createResolver((_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
         return Users.find(args);
     }),
-    me: isAuth.createResolver((_, args, ctx) => {
+    me: isAuth.createResolver((_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
         return ctx.user
     }),
 };
 
 const TypeResolvers = {
     User: {
-        count: (_, args, ctx) => {
+        count: (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
             if (!ctx.result) {
                 ctx.result = ctx.data.count - 1;
             }
             return ctx.result;
         },
-        sites: async (_, args, ctx) => {
+        sites: async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
             return (await User.populate(_, 'sites')).sites;
         },
-        siteCount: async (_, args, ctx) => {
+        siteCount: async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
             const result = (await Sites.model.find({ manager: _.id, $or: [{ isDeleted: false }, { isDeleted: null }] }))            
             return result.length
         },
-        totalSitesCost: async (_, args, ctx) => {
+        totalSitesCost: async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
             const user = await User.populate(_, "sites");
-            return user.toObject().sites.reduce((first, second) => {
+            return user.toObject().sites.reduce((first: $TSFixMe, second: $TSFixMe) => {
                 return first + second.cost;
             }, 0);
         }
     },
     UserCreditHistory: {
-        count: (_, args, ctx) => {
+        count: (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
             if (!ctx.result) {
                 ctx.result = ctx.data.count;
             }
@@ -158,34 +160,51 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-    createUser: isAdmin.createResolver(async (_, { data }, ctx) => {
+    createUser: isAdmin.createResolver(async (_: $TSFixMe, {
+        data
+    }: $TSFixMe, ctx: $TSFixMe) => {
         const result = await Users.create(data);
         ctx.data = {
             count: await User.count({}),
         };
         return result;
     }),
-    updateUser: isManager.createResolver(async (_, { id, data }, ctx) => {
+    updateUser: isManager.createResolver(async (_: $TSFixMe, {
+        id,
+        data
+    }: $TSFixMe, ctx: $TSFixMe) => {
         ctx.data = {
             count: await User.count({}),
         };
         return Users.update({ id, ...data });
     }),
-    deleteUsers: isAdmin.createResolver(async (_, args) => {
+    deleteUsers: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe) => {
         await Users.remove(args);
         return { status: true };
     }),
-    login: (_, { data }) => Users.login(data),
-    credit: isAdmin.createResolver(async (_, { id, ...rest }) => {
+    login: (_: $TSFixMe, {
+        data
+    // @ts-expect-error TS(2339): Property 'login' does not exist on type '{ all: ({... Remove this comment to see the full error message
+    }: $TSFixMe) => Users.login(data),
+    credit: isAdmin.createResolver(async (_: $TSFixMe, {
+        id,
+        ...rest
+    }: $TSFixMe) => {
         let user = await Users.find({ id });
         await user.credit(rest);
         return await (await Users.find({ id })).toObject().history[0];
     }),
-    updateUserContact: isManager.createResolver(async (_, { id, contact }) => {
+    updateUserContact: isManager.createResolver(async (_: $TSFixMe, {
+        id,
+        contact
+    }: $TSFixMe) => {
         await User.findByIdAndUpdate({ _id: id }, { contact });
         return Users.find({ id });
     }),
-    updateUserPassword: isManager.createResolver(async (_, { id, data }, ctx) => {
+    updateUserPassword: isManager.createResolver(async (_: $TSFixMe, {
+        id,
+        data
+    }: $TSFixMe, ctx: $TSFixMe) => {
         const user = await (await Users.find({ id }));
         if (ctx.user.isAdmin()) {
             await user.resetPassword(data);

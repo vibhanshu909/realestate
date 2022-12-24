@@ -1,4 +1,5 @@
 import '../../config/main';
+// @ts-expect-error TS(2305): Module '"../Site"' has no exported member 'SiteEnt... Remove this comment to see the full error message
 import {Site, SiteEntry} from '../Site';
 
 async function seed(){

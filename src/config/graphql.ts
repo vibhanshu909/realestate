@@ -1,7 +1,9 @@
 import { graphiqlExpress, graphqlExpress } from "apollo-server-express";
 import bodyParser from "body-parser";
 import { makeExecutableSchema } from "graphql-tools";
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'grap... Remove this comment to see the full error message
 import GraphQLJSON from "graphql-type-json";
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'json... Remove this comment to see the full error message
 import jwt from "jsonwebtoken";
 import Activities from "../connectors/activities";
 import Metrics from "../connectors/metric";
@@ -11,7 +13,7 @@ import Sites from "../connectors/sites";
 import Users from "../connectors/users";
 import { User } from "../models/User";
 
-export async function verifyToken(token) {
+export async function verifyToken(token: $TSFixMe) {
   let user, expired;
   try {
     const obj = await jwt.verify(token, process.env.SECRET, {
@@ -95,7 +97,7 @@ const schema = makeExecutableSchema({
   // schemaDirectives: Object.assign({}, Users.SchemaDirectives)
 });
 
-export default function(app) {
+export default function(app: $TSFixMe) {
   // The GraphQL endpoint
   app.use(
     "/graphql",
@@ -103,11 +105,14 @@ export default function(app) {
     graphqlExpress(async req => {
       let context = {
         req,
+        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
         user: req.user || null,
         expired: false
       };
       // let fun = null;
+      // @ts-expect-error TS(2532): Object is possibly 'undefined'.
       if (req.headers.authorization) {
+        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
         const token = req.headers.authorization;
         // fun = fetchGraphql({
         //   authorization: token,
@@ -118,6 +123,7 @@ export default function(app) {
           // fetchGraphql: fun,
         };
       } else {
+        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
         req.user = null;
       }
       // var waitTill = new Date(new Date().getTime() + 2 * 1000);

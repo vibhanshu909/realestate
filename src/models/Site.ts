@@ -76,10 +76,10 @@ const SiteSchema = Schema({
 SiteSchema.methods.reEval = async function () {
   const site = await Site.populate(this, 'entries');
   let managerSpentAmount = 0;
-  site.entries.forEach(e => managerSpentAmount += e.managerSpentAmount);
+  site.entries.forEach((e: $TSFixMe) => managerSpentAmount += e.managerSpentAmount);
   this.update({ managerSpentAmount });
 }
-async function totalHook(_) {
+async function totalHook(this: $TSFixMe, _: $TSFixMe) {
   let cost = 0, managerSpentAmount = 0;
   const site = await Site.populate(this, 'entries');
   const { entries } = site.toObject();
@@ -123,14 +123,16 @@ async function totalHook(_) {
     other: 0,
     other2: 0,
   };
-  entries.forEach(e => {
+  entries.forEach((e: $TSFixMe) => {
     const { _id, total: t, other, other2, note, managerSpentAmount: msa, site, createdAt, updatedAt, __v, ...data } = e;
     cost += t;
     managerSpentAmount += msa;
     newTotal.other += other.cost;
     newTotal.other2 += other2.cost;
     Object.keys(data).map(x => {
+      // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
       newTotal[x].quantity += e[x].quantity;
+      // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
       newTotal[x].cost += e[x].cost;
     })
   });
@@ -153,12 +155,12 @@ SiteSchema.pre('update', totalHook);
 //   return (await Users.find({ id: this.manager })).reEval();
 // });
 
-SiteSchema.pre('remove', async function () {
+SiteSchema.pre('remove', async function(this: $TSFixMe) {
   const { __v, ...data } = this.toObject();
   await DeletedSite.create(data);
 });
 
-SiteSchema.post('remove', async function (doc) {
+SiteSchema.post('remove', async function (doc: $TSFixMe) {
   await SiteEntries.remove({ ids: doc.entries });
   let user = await Users.find({ id: doc.manager });
   if (user) {

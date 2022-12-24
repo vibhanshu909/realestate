@@ -63,16 +63,16 @@ const QuerySchema = `
 // Query resolvers
 const TypeResolvers = {
   Site: {
-    count: async (_, args, ctx) => {
+    count: async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
       if (!ctx.result) {
         ctx.result = (ctx.data && ctx.data.count) || _.entries.length;
       }
       return ctx.result;
     },
-    entryCount: (_, args, ctx) => {
+    entryCount: (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
       return _.entries.length;
     },
-    lastEntryDate: async _ => {
+    lastEntryDate: async (_: $TSFixMe) => {
       console.log(_);
       if (_.entries && _.entries.length) {
         const entryId = _.entries[0];
@@ -80,7 +80,7 @@ const TypeResolvers = {
       }
       return null;
     },
-    manager: async _ => {
+    manager: async (_: $TSFixMe) => {
       if (!_.manager) {
         return {
           id: String(Math.random()),
@@ -93,7 +93,7 @@ const TypeResolvers = {
 };
 
 const RootQuery = {
-  sites: isManager.createResolver(async (_, args, ctx) => {
+  sites: isManager.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     // ctx.data = { count: await Site.countDocuments() };
     const { user } = ctx;
     let result;
@@ -136,13 +136,13 @@ const RootQuery = {
     }
     return result;
   }),
-  site: isManager.createResolver((_, args, ctx) => {
+  site: isManager.createResolver((_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     ctx.data = { count: Site.countDocuments() };
     const { user } = ctx;
     if (user.role == ROLES.ADMIN) {
       return Sites.find(args).populate("manager");
     } else {
-      if (user.sites.find(e => String(e) === args.id)) {
+      if (user.sites.find((e: $TSFixMe) => String(e) === args.id)) {
         return Sites.find(args).populate("manager");
       } else {
         throw new Error("Site doesn't belong to user");
@@ -160,22 +160,27 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-  createSite: isAdmin.createResolver(async (_, { data }, ctx) => {
+  createSite: isAdmin.createResolver(async (_: $TSFixMe, {
+    data
+  }: $TSFixMe, ctx: $TSFixMe) => {
     let site = await Sites.create(data);
     const user = await Users.find({ id: data.manager });
     user.sites.push(site);
     user.save();
     return Site.populate(site, { path: "manager" });
   }),
-  updateSite: isAdmin.createResolver(async (_, { id, data }, ctx) => {
+  updateSite: isAdmin.createResolver(async (_: $TSFixMe, {
+    id,
+    data
+  }: $TSFixMe, ctx: $TSFixMe) => {
     return Site.populate(await Sites.update({ id, ...data }), {
       path: "manager"
     });
   }),
-  deleteSites: isAdmin.createResolver(async (_, args, ctx) => {
+  deleteSites: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     if (args.ids.length) {
       // await Sites.remove(args);
-      args.ids.forEach(async e => {
+      args.ids.forEach(async (e: $TSFixMe) => {
         const site = await Sites.find({ id: e });
         site.isDeleted = true;
         site.save();

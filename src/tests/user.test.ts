@@ -1,3 +1,4 @@
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'fake... Remove this comment to see the full error message
 import faker from 'faker';
 import login, { request } from './login';
 import {  
@@ -7,10 +8,13 @@ import {
   CREDIT
 } from './graphql/mutation/remote'
 
+// @ts-expect-error TS(2582): Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
 describe("testing", async () => {
   login();
+  // @ts-expect-error TS(2582): Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
   describe('user', () => {
     let user = {};
+    // @ts-expect-error TS(2582): Cannot find name 'test'. Do you need to install ty... Remove this comment to see the full error message
     test('createUser', async () => {
       const inputData = {
         username: faker.internet.userName().toLowerCase(),
@@ -24,9 +28,11 @@ describe("testing", async () => {
           data: inputData
         }
       });
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect(error).toBeUndefined();
       const { id, count, createdAt, updatedAt, ...rest } = createUser;
 
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect(rest).toMatchObject({
         username: inputData.username,
         totalReceivedAmount: inputData.totalReceivedAmount,
@@ -37,8 +43,10 @@ describe("testing", async () => {
       });
       user = { ...createUser, password: inputData.password }
     });
+    // @ts-expect-error TS(2582): Cannot find name 'test'. Do you need to install ty... Remove this comment to see the full error message
     test("credit", async () => {
       const inputData = {
+        // @ts-expect-error TS(2339): Property 'id' does not exist on type '{}'.
         id: user.id,
         amount: Number(faker.finance.amount())
       };
@@ -49,13 +57,17 @@ describe("testing", async () => {
           ...inputData
         }
       });
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect(error).toBeUndefined();
       const { amount } = credit;
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect({ amount }).toMatchObject({ amount: inputData.amount });
     });
 
+    // @ts-expect-error TS(2582): Cannot find name 'test'. Do you need to install ty... Remove this comment to see the full error message
     test("updateUserContact", async () => {
       const inputData = {
+        // @ts-expect-error TS(2339): Property 'id' does not exist on type '{}'.
         id: user.id,
         contact: Number(faker.phone.phoneNumberFormat().split("-").join(""))
       };
@@ -65,14 +77,19 @@ describe("testing", async () => {
           ...inputData
         }
       });
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect(error).toBeUndefined();
       const { contact } = updateUserContact;
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect({ contact }).toMatchObject({ contact: inputData.contact });
     });
+    // @ts-expect-error TS(2582): Cannot find name 'test'. Do you need to install ty... Remove this comment to see the full error message
     test("updateUserPassword", async () => {
       const inputData = {
+        // @ts-expect-error TS(2339): Property 'id' does not exist on type '{}'.
         id: user.id,
         data: {
+          // @ts-expect-error TS(2339): Property 'password' does not exist on type '{}'.
           currentPassword: user.password,
           newPassword: faker.internet.password()
         }
@@ -83,9 +100,12 @@ describe("testing", async () => {
           ...inputData
         }
       });
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect(error).toBeUndefined();
       const { status } = updateUserPassword;
+      // @ts-expect-error TS(2304): Cannot find name 'expect'.
       expect({ status }).toMatchObject({ status: true });
+      // @ts-expect-error TS(2339): Property 'password' does not exist on type '{}'.
       user.password = inputData.data.password;
     });
   });

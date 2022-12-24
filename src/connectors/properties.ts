@@ -73,7 +73,7 @@ const QuerySchema = `
 // Query resolvers
 
 const RootQuery = {
-  properties: isAdmin.createResolver(async (_, args, ctx) => {
+  properties: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     const query = {
       $or: [
         {
@@ -93,7 +93,7 @@ const RootQuery = {
     };
     return Properties.all({ ...args, query });
   }),
-  dueProperties: isAdmin.createResolver(async (_, args, ctx) => {
+  dueProperties: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     const query = {
       nextDueDate: {
         $lte: Date.now()
@@ -111,7 +111,7 @@ const RootQuery = {
       totalReceivedAmount: 0,
       balance: 0
     };
-    propertiesResult.forEach(property => {
+    propertiesResult.forEach((property: $TSFixMe) => {
       console.log(property);
       result.price += property.price;
       result.totalReceivedAmount += property.totalReceivedAmount;
@@ -119,7 +119,7 @@ const RootQuery = {
     });
     return result;
   },
-  propertyCreditHistory: isManager.createResolver(async (_, args, ctx) => {
+  propertyCreditHistory: isManager.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     const { id, skip, limit } = args;
     const property = await Properties.find(args);
     ctx.data = {
@@ -131,19 +131,19 @@ const RootQuery = {
     // return property.select({ 'history': { '$slice': [skip,limit] } })
     // return property.history.find({}, {rest});
   }),
-  property: isManager.createResolver((_, args, ctx) => {
+  property: isManager.createResolver((_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     return Properties.find(args);
   })
 };
 
 const TypeResolvers = {
   Property: {
-    count: (_, args, ctx) => {
+    count: (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
       return ctx.data.count;
     }
   },
   PropertyCreditHistory: {
-    count: (_, args, ctx) => {
+    count: (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
       return ctx.data.count;
     }
   }
@@ -159,21 +159,29 @@ const MutationSchema = `
 
 // Mutation resolvers
 const RootMutation = {
-  createProperty: isAdmin.createResolver(async (_, { data }, ctx) => {
+  createProperty: isAdmin.createResolver(async (_: $TSFixMe, {
+    data
+  }: $TSFixMe, ctx: $TSFixMe) => {
     const result = await Properties.create({ ...data, owner: ctx.user });
     ctx.data = {
       count: await Property.count({})
     };
     return result;
   }),
-  updateProperty: isManager.createResolver(async (_, { id, data }) => {
+  updateProperty: isManager.createResolver(async (_: $TSFixMe, {
+    id,
+    data
+  }: $TSFixMe) => {
     return Properties.update({ id, ...data });
   }),
-  deleteProperties: isAdmin.createResolver(async (_, args) => {
+  deleteProperties: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe) => {
     await Properties.remove(args);
     return { status: true };
   }),
-  propertyCredit: isAdmin.createResolver(async (_, { id, data }) => {
+  propertyCredit: isAdmin.createResolver(async (_: $TSFixMe, {
+    id,
+    data
+  }: $TSFixMe) => {
     let property = await Properties.find({ id });
     await property.credit(data);
     return await (await Properties.find({ id })).toObject().history[0];

@@ -26,23 +26,23 @@ const QuerySchema = `
 // Query resolvers
 
 const RootQuery = {
-  activities: isAdmin.createResolver(async (_, args, ctx) => {
+  activities: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     ctx.data = {
       count: await Activity.countDocuments(),
     };
     return Activities.all({ ...args, query: {} }).populate('user');
   }),
-  activity: isManager.createResolver((_, args, ctx) => {
+  activity: isManager.createResolver((_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     return Activities.find(args).populate('user');
   }),
 };
 
 const TypeResolvers = {
   Activity: {
-    count: (_, args, ctx) => {
+    count: (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
       return ctx.data.count;
     },
-    user: (activity) => {
+    user: (activity: $TSFixMe) => {
       if(activity.user){
         return activity.user
       }

@@ -30,12 +30,12 @@ const AccountSchema = Schema({
     });
 
 
-AccountSchema.methods.credit = async function (amount) {
+AccountSchema.methods.credit = async function (amount: $TSFixMe) {
     await this.histroy.credit(amount);
     return this.update({}, { $set: { totalReceivedAmount: this.totalReceivedAmount + amount, balance: this.balance + amount } });
 }
 
-AccountSchema.methods.debit = async function (amount, to) {
+AccountSchema.methods.debit = async function (amount: $TSFixMe, to: $TSFixMe) {
     await this.histroy.debit(amount, to);
     return this.update({}, { $set: { spent: this.spent - amount, balance: this.balance - amount } });
 }

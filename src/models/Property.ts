@@ -37,14 +37,15 @@ const PropertySchema = Schema(
     nextDueDate: {
       type: Date,
       validate: {
-        validator: function(val) {
+        validator: function(val: $TSFixMe) {
           console.log("val =", val);
           if (val === " " || val === null) {
             return true;
           }
+          // @ts-expect-error TS(2365): Operator '<=' cannot be applied to types 'number' ... Remove this comment to see the full error message
           return Date.now() <= new Date(val);
         },
-        message: props => `${props.value} must be in future`
+        message: (props: $TSFixMe) => `${props.value} must be in future`
       }
     },
     note: String,
@@ -74,7 +75,7 @@ const PropertySchema = Schema(
   }
 );
 
-PropertySchema.pre("save", async function(next) {
+PropertySchema.pre("save", async function(this: $TSFixMe, next: $TSFixMe) {
   if (this.isNew) {
     this.balance = this.price - this.totalReceivedAmount;
     this.history.push({ amount: this.totalReceivedAmount });
@@ -82,7 +83,7 @@ PropertySchema.pre("save", async function(next) {
   return next();
 });
 
-PropertySchema.pre("remove", async function() {
+PropertySchema.pre("remove", async function(this: $TSFixMe) {
   const { __v, ...data } = this.toObject();
   await DeletedProperty.create(data);
 });
@@ -98,7 +99,7 @@ PropertySchema.pre("remove", async function() {
 //     this.cost = total;
 // });
 
-PropertySchema.methods.credit = async function(params) {
+PropertySchema.methods.credit = async function(params: $TSFixMe) {
   const { amount, nextDueDate, note } = params;
   if (amount === 0) {
     return this;

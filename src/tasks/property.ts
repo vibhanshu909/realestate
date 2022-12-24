@@ -1,12 +1,13 @@
 import AWS from "aws-sdk";
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'unir... Remove this comment to see the full error message
 import unirest from "unirest";
 import { Properties } from "../connectors/properties";
 import Property from "../models/Property";
 
-export function stripString(str) {
+export function stripString(str: $TSFixMe) {
   return str.replace(/\s\s+/g, " ");
 }
-export function fastSend(args) {
+export function fastSend(args: $TSFixMe) {
   const { to, msg } = args;
   const req = unirest("POST", "https://www.fast2sms.com/dev/bulk");
   const apiKey =
@@ -23,7 +24,7 @@ export function fastSend(args) {
     // "flash": "1"
   });
 
-  req.end(function(res) {
+  req.end(function(res: $TSFixMe) {
     if (res.error) {
       console.log(res.body, res.error);
     } else if (res.body == undefined) {
@@ -33,7 +34,7 @@ export function fastSend(args) {
   });
 }
 
-export function way2sms(args) {
+export function way2sms(args: $TSFixMe) {
   const { to, msg } = args;
   const req = unirest("POST", "https://smsapi.engineeringtgr.com/send/");
   const userid = "9984432113";
@@ -48,7 +49,7 @@ export function way2sms(args) {
     Key: apiKey
   });
 
-  req.end(function(res) {
+  req.end(function(res: $TSFixMe) {
     if (res.error) {
       // console.log(res.body, res.error);
     } else if (!res.body) {
@@ -58,7 +59,7 @@ export function way2sms(args) {
   });
 }
 
-export function awsSns(args) {
+export function awsSns(args: $TSFixMe) {
   console.log(args);
   const { to, msg } = args;
   AWS.config.update({ region: "ap-southeast-1" });
@@ -131,6 +132,7 @@ export default async function() {
       awsSns({ to: e.buyerNumber, msg });
     }
 
+    // @ts-expect-error TS(2365): Operator '>' cannot be applied to types 'string' a... Remove this comment to see the full error message
     if (admin.to && admin.to > 999999999) {
       admin.msg += stripString(`                
         Property name: ${e.name}.

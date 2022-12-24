@@ -80,7 +80,7 @@ const QuerySchema = `
 // Query resolvers
 const TypeResolvers = {
   SiteEntry: {
-    site: async (_, args, ctx) => {
+    site: async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
       if (ctx.data) {
         return ctx.data.site;
       }
@@ -91,7 +91,11 @@ const TypeResolvers = {
 
 const RootQuery = {
   siteEntries: isManager.createResolver(
-    async (_, { siteId: id, limit, skip }, ctx) => {
+    async (_: $TSFixMe, {
+      siteId: id,
+      limit,
+      skip
+    }: $TSFixMe, ctx: $TSFixMe) => {
       const site = await Sites.find({ id });
       const result = await Site.populate(site, {
         path: "entries",
@@ -105,7 +109,7 @@ const RootQuery = {
       return result.entries;
     }
   ),
-  siteEntry: isManager.createResolver(async (_, args, ctx) => {
+  siteEntry: isManager.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     return SiteEntries.find(args);
   })
 };
@@ -127,7 +131,10 @@ const MutationSchema = `
 // Mutation resolvers
 const RootMutation = {
   createSiteEntry: isManager.createResolver(
-    async (_, { siteId, data }, ctx) => {
+    async (_: $TSFixMe, {
+      siteId,
+      data
+    }: $TSFixMe, ctx: $TSFixMe) => {
       const { createdAt } = data;
       if (ctx.user.isManager()) {
         const today = new Date(getDate());
@@ -205,7 +212,11 @@ const RootMutation = {
     }
   ),
   updateSiteEntry: isAdmin.createResolver(
-    async (_, { siteId, id, data }, ctx) => {
+    async (_: $TSFixMe, {
+      siteId,
+      id,
+      data
+    }: $TSFixMe, ctx: $TSFixMe) => {
       let site = Sites.find({ id: siteId });
       let entry = await SiteEntries.update({ id, ...data });
       site = await site;
@@ -216,11 +227,11 @@ const RootMutation = {
       return entry;
     }
   ),
-  deleteSiteEntries: isAdmin.createResolver(async (_, args, ctx) => {
+  deleteSiteEntries: isAdmin.createResolver(async (_: $TSFixMe, args: $TSFixMe, ctx: $TSFixMe) => {
     console.log("deleteSiteEntries");
     if (args.ids.length) {
       let site = await Sites.find({ id: args.siteId });
-      args.ids.map(id => site.entries.pull(id));
+      args.ids.map((id: $TSFixMe) => site.entries.pull(id));
       await site.save();
       console.log("about to remove");
       await SiteEntries.remove(args);

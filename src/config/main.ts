@@ -1,3 +1,4 @@
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'mong... Remove this comment to see the full error message
 import db from 'mongoose';
 
 const database = process.env.ENV === "testing" ? "realestate_testing" : "realestate";
@@ -11,7 +12,7 @@ const config = {
 db.connect(config.database, { useNewUrlParser: true })
     .then(() => {
         console.log("Successfully connected to the database", database);
-    }).catch(err => {
+    }).catch((err: $TSFixMe) => {
         console.log('Could not connect to the database. Exiting now...');
         process.exit();
     });

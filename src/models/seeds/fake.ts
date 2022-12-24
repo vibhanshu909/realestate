@@ -3,6 +3,7 @@ import { User, ROLES } from '../User';
 import Property from '../Property';
 import { Site } from '../Site';
 import { SiteEntries } from '../../connectors/siteEntries';
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'fake... Remove this comment to see the full error message
 import faker from 'faker';
 
 async function seed() {

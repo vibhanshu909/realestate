@@ -1,6 +1,9 @@
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'cors... Remove this comment to see the full error message
 import cors from "cors";
 import express from "express";
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'morg... Remove this comment to see the full error message
 import logger from "morgan";
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'node... Remove this comment to see the full error message
 import cron from "node-cron";
 import { createConn } from "./config/db";
 import graphqlConfig from "./config/graphql";
@@ -15,11 +18,12 @@ const PORT = process.env.PORT;
 
   app.use(logger("dev"));
 
+  // @ts-expect-error TS(2345): Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
   const whitelist = JSON.parse(process.env.WHITELIST_DOMAINS).concat(
     process.env.NODE_ENV === "development" ? ["*"] : []
   );
   const corsOptions = {
-    origin: function(origin, callback) {
+    origin: function(origin: $TSFixMe, callback: $TSFixMe) {
       if (!origin || whitelist.includes("*") || whitelist.includes(origin)) {
         callback(null, true);
       } else {
@@ -47,7 +51,9 @@ const PORT = process.env.PORT;
   });
   const server = app.listen(PORT, () => {
     console.log(
+      // @ts-expect-error TS(2339): Property 'port' does not exist on type 'string | A... Remove this comment to see the full error message
       `CORS-enabled web server listening on port ${server.address().port} [${
+        // @ts-expect-error TS(2339): Property 'env' does not exist on type 'Express'.
         app.env
       }]`
     );

@@ -1,4 +1,5 @@
 import mongoose from '../config/db';
+// @ts-expect-error TS(7016): Could not find a declaration file for module 'bcry... Remove this comment to see the full error message
 import bcrypt from 'bcryptjs';
 import DeletedUser from './Deleted/User';
 
@@ -33,6 +34,7 @@ export const SchemaObject = {
   role: {
     type: String,
     required: true,
+    // @ts-expect-error TS(2550): Property 'values' does not exist on type 'ObjectCo... Remove this comment to see the full error message
     enum: Object.values(ROLES),
     default: ROLES.MANAGER
   },
@@ -54,6 +56,7 @@ export const SchemaObject = {
     type: {
       type: String,
       required: true,
+      // @ts-expect-error TS(2550): Property 'values' does not exist on type 'ObjectCo... Remove this comment to see the full error message
       enum: Object.values(TRANSACTION_TYPE),
       default: TRANSACTION_TYPE.CREDIT
     },
@@ -82,7 +85,7 @@ const UserSchema = Schema(SchemaObject, {
   timestamps: true
 });
 
-export async function getHash(str) {
+export async function getHash(str: $TSFixMe) {
   try {
     const result = await bcrypt.hash(str, await bcrypt.genSalt(10));
     return result;
@@ -92,7 +95,7 @@ export async function getHash(str) {
   }
 }
 
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function(this: $TSFixMe, next: $TSFixMe) {
   const user = this;
   if (user.isModified("password") || user.isNew) {
     user.password = await getHash(user.password);
@@ -103,7 +106,7 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function(this: $TSFixMe, next: $TSFixMe) {
   if (this.isNew) {
     this.balance = this.totalReceivedAmount;
     this.history.push({ amount: this.totalReceivedAmount });
@@ -111,20 +114,20 @@ UserSchema.pre('save', async function (next) {
   return next();
 });
 
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function(this: $TSFixMe, next: $TSFixMe) {
   const { spent, balance } = await reEval(this);
   this.spent = spent;
   this.balance = balance;
   return next();
 });
 
-UserSchema.pre('remove', async function () {
+UserSchema.pre('remove', async function(this: $TSFixMe) {
   console.log(this.toObject());
   const { __v, ...data } = this.toObject();
   await DeletedUser.create(data);
 });
 
-UserSchema.post('remove', async function (doc) {
+UserSchema.post('remove', async function (doc: $TSFixMe) {
   const { Sites } = await import('../connectors/sites');
   if (doc.sites && doc.sites.length) {
     try {
@@ -142,11 +145,14 @@ UserSchema.methods.isManager = function () {
   return this.role === String(ROLES.MANAGER)
 };
 
-UserSchema.methods.comparePassword = function (password) {
+UserSchema.methods.comparePassword = function (password: $TSFixMe) {
   return bcrypt.compare(password, this.password);
 };
 
-UserSchema.methods.changePassword = async function ({ currentPassword, newPassword }) {
+UserSchema.methods.changePassword = async function ({
+  currentPassword,
+  newPassword
+}: $TSFixMe) {
   if (!currentPassword || !newPassword) throw new Error("Empty password");
   const cmp = await bcrypt.compare(currentPassword, this.password);
   if (cmp) {
@@ -157,14 +163,16 @@ UserSchema.methods.changePassword = async function ({ currentPassword, newPasswo
   throw new Error("Password does not match");
 };
 
-UserSchema.methods.resetPassword = async function ({ newPassword }) {
+UserSchema.methods.resetPassword = async function ({
+  newPassword
+}: $TSFixMe) {
   if (!newPassword) throw new Error("Empty password");
   return this.update({
     password: await getHash(newPassword)
   });
 };
 
-UserSchema.methods.credit = async function (args) {
+UserSchema.methods.credit = async function (args: $TSFixMe) {
   const { amount, note = '' } = args
   if (amount === 0) {
     return this;
@@ -186,7 +194,7 @@ UserSchema.methods.credit = async function (args) {
   }, { new: true });
 }
 
-UserSchema.methods.debit = async function (args) {
+UserSchema.methods.debit = async function (args: $TSFixMe) {
   const { amount, note = '' } = args
   if (amount === 0) {
     return this;
@@ -209,10 +217,10 @@ UserSchema.methods.debit = async function (args) {
   }, { new: true });
 }
 
-async function reEval(doc) {
+async function reEval(doc: $TSFixMe) {
   const user = await User.populate(doc, 'sites');
   let managerSpentAmount = 0;
-  user.sites.forEach(e => managerSpentAmount += e.managerSpentAmount);
+  user.sites.forEach((e: $TSFixMe) => managerSpentAmount += e.managerSpentAmount);
   return { spent: managerSpentAmount, balance: doc.totalReceivedAmount - managerSpentAmount };
 }
 
